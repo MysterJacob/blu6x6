@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "fail.h"
+
 #define PORT_MAX_COMMANDS 32
 #define PORT_CMD_BUF_LEN 48
 #define PORT_MAX_ARGS 8
@@ -12,7 +14,6 @@ static int port_command_count = 0;
 
 static int help_command_handler(int argc, char **argv)
 {
-  puts("printing help");
   for(int i = 0; i < port_command_count; i++) {
     printf("%d. %s\n", i, port_commands[i].name);
   }
@@ -23,7 +24,7 @@ void port_init(void)
 {
   port_command_count = 0;
   memset(port_commands, 0, sizeof(port_commands));
-  port_register_command("help", help_command_handler);
+  ON_ERROR_ABORT(port_register_command("help", help_command_handler));
 }
 
 int port_register_command(const char *name, command_handler callback)
