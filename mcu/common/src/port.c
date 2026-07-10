@@ -9,7 +9,7 @@
 #define PORT_CMD_BUF_LEN 48
 #define PORT_MAX_ARGS 8
 
-static port_command port_commands[PORT_MAX_COMMANDS];
+static port_command_T port_commands[PORT_MAX_COMMANDS];
 static int port_command_count = 0;
 
 static int help_command_handler(int argc, char **argv)
@@ -27,7 +27,7 @@ void port_init(void)
   ON_ERROR_ABORT(port_register_command("help", help_command_handler));
 }
 
-int port_register_command(const char *name, command_handler callback)
+int port_register_command(const char *name, command_handler_t callback)
 {
   if(!name || !callback) return -1;
   if(port_command_count >= PORT_MAX_COMMANDS) return COMMAND_BUFFER_OVERFLOW;
