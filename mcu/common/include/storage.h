@@ -28,7 +28,7 @@ typedef struct __attribute__((packed)) {
   obd_fault_nv_t faults[MAX_HISTORY_FAULTS];
 } fault_history_store_t;
 
-void storage_init();
+int storage_init();
 
 int store_obd_fault(const uint16_t id, const uint8_t status,
                     const uint8_t fault, const uint64_t last_bootcycle_present);

@@ -10,6 +10,19 @@
 
 uint64_t boottime = 0;
 sys_t sys = {0};
+
+system_state_t init_h(state_change_params_t params);
+system_state_t post_h(state_change_params_t params);
+system_state_t idle_h(state_change_params_t params);
+system_state_t drive_h(state_change_params_t params);
+
+system_state_handler_t system_state_handlers[] = {init_h, post_h, idle_h,
+                                                  drive_h};
+system_reboot_reason_t get_reboot_reason()
+{
+  return POWERON;
+}
+
 static int obd_test(int argc, char **argv)
 {
   if(argc == 1) {
@@ -20,16 +33,25 @@ static int obd_test(int argc, char **argv)
   return 0;
 }
 
-int main()
+system_state_t init_h(state_change_params_t params)
 {
+  puts("Init");
   boottime = time(NULL);
-  storage_init();
-  port_init();
-  obd_init();
   obd_register(OBD_TEST_HARD, OBD_HARDFAULT);
   obd_register(OBD_TEST_SOFT, OBD_SOFTFAULT);
   port_register_command("t", obd_test);
+  return POST;
+}
 
+system_state_t post_h(state_change_params_t params)
+{
+  puts("Post");
+  return IDLE;
+}
+
+system_state_t idle_h(state_change_params_t params)
+{
+  puts("Idle");
   char cmd[48];
   int code;
   int conv;
@@ -43,6 +65,13 @@ int main()
     code = port_process_command(cmd);
     printf("command exited with code: %d\n", code);
   }
+  return IDLE;
+}
+
+system_state_t drive_h(state_change_params_t params)
+{
+  puts("Drive");
+  return IDLE;
 }
 
 uint64_t get_ms_from_boot()

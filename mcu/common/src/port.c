@@ -20,11 +20,12 @@ static int help_command_handler(int argc, char **argv)
   return OK;
 }
 
-void port_init(void)
+int port_init(void)
 {
   port_command_count = 0;
   memset(port_commands, 0, sizeof(port_commands));
   ON_ERROR_ABORT(port_register_command("help", help_command_handler));
+  return 0;
 }
 
 int port_register_command(const char *name, command_handler_t callback)

@@ -1,5 +1,5 @@
 #pragma once
-void port_init();
+int port_init();
 
 typedef int (*command_handler_t)(int argc, char **argv);
 int port_register_command(const char *name, command_handler_t callback);

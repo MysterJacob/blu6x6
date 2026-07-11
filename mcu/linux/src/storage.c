@@ -8,7 +8,7 @@
 static fault_present_store_t storage;
 static fault_history_store_t history;
 
-void storage_init()
+int storage_init()
 {
   storage.magic = 0xCAFE;
   storage.version = 0xCAFE;
@@ -18,6 +18,7 @@ void storage_init()
   history.version = 0xCAFE;
   history.crc = 0xCAFE;
   history.count = 0;
+  return 0;
 }
 
 int store_obd_fault(const uint16_t id, const uint8_t status,
