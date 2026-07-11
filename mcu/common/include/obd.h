@@ -12,7 +12,7 @@ typedef enum { OBD_CLEAR = 0, OBD_ACTIVE = 2 } obd_status_t;
 typedef enum { OBD_TEST, _OBD_GUARD_LAST } obd_fault_t;
 
 typedef struct _obd_error {
-  obd_fault_t code;
+  obd_fault_t id;
   obd_flags_t flags;
   obd_status_t status;
   uint8_t fault;

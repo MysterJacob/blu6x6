@@ -1,4 +1,5 @@
 #include "obd.h"
+#include "storage.h"
 
 #include <stdio.h>
 
@@ -12,7 +13,7 @@ static int _list_faults_handler(int argc, char **argv)
 {
   for(int i = 0; i < _OBD_GUARD_LAST; i++) {
     obd_fault_cfg_t obd_fault = _obd_faults[i];
-    printf("%-8d %-8d %-15lu %-10d %-10x\n", obd_fault.code, obd_fault.status,
+    printf("%-8d %-8d %-15lu %-10d %-10x\n", obd_fault.id, obd_fault.status,
            obd_fault.last_bootcycle_present, obd_fault.flags, obd_fault.fault);
   }
   return 0;
@@ -21,6 +22,7 @@ static int _list_faults_handler(int argc, char **argv)
 int obd_init()
 {
   ON_ERROR_ABORT(port_register_command("faults", _list_faults_handler));
+
   return 0;
 }
 
@@ -60,7 +62,7 @@ int obd_fault(obd_fault_t code, uint8_t fault)
 int obd_register(const obd_fault_t code, const obd_flags_t flags)
 {
   if(code >= _OBD_GUARD_LAST) return -1;
-  _obd_faults[code].code = code;
+  _obd_faults[code].id = code;
   _obd_faults[code].flags = flags;
   _obd_faults[code].status = 0;
   _obd_faults[code].fault = 0;

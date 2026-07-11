@@ -21,6 +21,6 @@ typedef struct __attribute__((packed)) {
 } fault_store_t;
 
 void init_storage();
-int store_obd_faults(size_t buffer_size, const obd_fault_cfg_t faults[]);
-int read_obd_faults(size_t buffer_size, size_t *count,
+int store_obd_faults(const obd_fault_cfg_t faults[]);
+int read_obd_faults(size_t buffer_size, size_t *active_count,
                     obd_fault_cfg_t faults[]);
