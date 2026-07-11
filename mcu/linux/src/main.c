@@ -1,23 +1,33 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
+#include "fail.h"
 #include "obd.h"
 #include "port.h"
+#include "storage.h"
 #include "system.h"
 
 uint64_t boottime = 0;
 sys_t sys = {0};
 static int obd_test(int argc, char **argv)
 {
-  obd_fault(OBD_TEST, 0);
+  if(argc == 1) {
+    obd_fault(OBD_TEST_SOFT, 0);
+    return 0;
+  }
+  ON_ERROR_LOG(obd_fault(atoi(argv[1]), 0));
   return 0;
 }
+
 int main()
 {
   boottime = time(NULL);
+  storage_init();
   port_init();
   obd_init();
-  obd_register(OBD_TEST, OBD_HARDFAULT);
+  obd_register(OBD_TEST_HARD, OBD_HARDFAULT);
+  obd_register(OBD_TEST_SOFT, OBD_SOFTFAULT);
   port_register_command("t", obd_test);
 
   char cmd[48];
@@ -26,8 +36,9 @@ int main()
   while(1) {
     printf(">>>");
     fflush(stdout);
-    while((conv = scanf("%47s", cmd)) == 0) {
+    while((conv = scanf("%47[^\n]", cmd)) == 0) {
     };
+    getchar();
     if(conv < 0) return -1;
     code = port_process_command(cmd);
     printf("command exited with code: %d\n", code);

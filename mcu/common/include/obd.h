@@ -9,10 +9,10 @@ typedef enum {
   OBD_FAULT_OR = 16,
 } obd_flags_t;
 typedef enum { OBD_CLEAR = 0, OBD_ACTIVE = 2 } obd_status_t;
-typedef enum { OBD_TEST, _OBD_GUARD_LAST } obd_fault_t;
+typedef enum { OBD_TEST_SOFT, OBD_TEST_HARD, _OBD_FAULT_COUNT } obd_code_t;
 
 typedef struct _obd_error {
-  obd_fault_t id;
+  obd_code_t id;
   obd_flags_t flags;
   obd_status_t status;
   uint8_t fault;
@@ -20,7 +20,7 @@ typedef struct _obd_error {
 } obd_fault_cfg_t;
 
 int obd_init();
-int obd_clear(obd_fault_t code);
-int obd_forceclear(obd_fault_t code);
-int obd_fault(obd_fault_t code, uint8_t fault);
-int obd_register(const obd_fault_t code, const obd_flags_t flags);
+int obd_clear(obd_code_t code);
+int obd_forceclear(obd_code_t code);
+int obd_fault(obd_code_t code, uint8_t fault);
+int obd_register(const obd_code_t code, const obd_flags_t flags);
