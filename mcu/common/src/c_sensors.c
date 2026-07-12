@@ -1,5 +1,8 @@
+#include <stdio.h>
 #include <string.h>
 
+#include "fail.h"
+#include "port.h"
 #include "sensors.h"
 
 static struct {
@@ -16,10 +19,20 @@ static struct {
   uint8_t samples;
 } _sensors_obd[MAX_SENSOR_RATINGS];
 
+int port_print_sensors_handler(int argc, char **argv);
+// int mock_read()
+// {
+//   perform_sensors_obd();
+//   return 400 - 15 * get_ms_from_boot();
+// }
 int sensors_init()
 {
   memset(&_sensors, 0, sizeof(_sensors));
   memset(_sensors_obd, 0, sizeof(_sensors_obd));
+  ON_ERROR_ABORT(port_register_command("sensors", port_print_sensors_handler));
+//   register_sensor(MOTOR_1_CURRENT, mock_read, 1000);
+//   register_sensor_ratings(MOTOR_1_CURRENT, ANY, 0.3, OBDC_TEST_HARD, 1, 1, 2,
+//                           1);
   return 0;
 }
 
@@ -29,12 +42,12 @@ int register_sensor(sensor_id_t id, sensor_handler_t handler, int div)
   if(_sensors.sensors_lookup[id] != 0) return 2;
   if(div == 0) return 3;
 
-  _sensors.sensors[_sensors.sensor_count] = (sensor_t){handler, div};
+  _sensors.sensors[_sensors.sensor_count] = (sensor_t){id, handler, div};
   _sensors.sensors_lookup[id] = &_sensors.sensors[_sensors.sensor_count++];
   return 0;
 }
 
-int register_sensor_ratings(sensor_id_t id, system_state_t state, int rating,
+int register_sensor_ratings(sensor_id_t id, system_state_t state, float rating,
                             obd_code_t obd_code, uint8_t obd_fault,
                             uint8_t is_minimum, uint8_t required_samples,
                             int pool_ms)
@@ -93,5 +106,53 @@ void perform_sensors_obd()
     }
     if(samples >= 0 && samples <= rating->required_samples)
       _sensors_obd[i].samples = samples;
+  }
+}
+
+int port_print_sensors_handler(int argc, char **argv)
+{
+  for(int i = 0; i < _sensors.sensor_count; i++) {
+    const sensor_t *sensor = _sensors.sensors;
+    float out;
+    if(get_sensor_reading(sensor->id, &out) == 0) {
+      printf("%s \t%-10f\n", sensor_id_to_string(sensor->id), out);
+    } else {
+      printf("%-16d READ FAULT\n", sensor->id);
+    }
+  }
+  return 0;
+}
+
+const char *sensor_id_to_string(sensor_id_t id)
+{
+  switch(id) {
+    case BATTERY_VOLTAGE:
+      return "BATTERY_VOLTAGE";
+    case MCU_VOLTAGE:
+      return "MCU_VOLTAGE";
+    case MOTOR_1_POWER:
+      return "MOTOR_1_POWER";
+    case MOTOR_1_CURRENT:
+      return "MOTOR_1_CURRENT";
+    case MOTOR_2_POWER:
+      return "MOTOR_2_POWER";
+    case MOTOR_2_CURRENT:
+      return "MOTOR_2_CURRENT";
+    case MOTOR_3_POWER:
+      return "MOTOR_3_POWER";
+    case MOTOR_3_CURRENT:
+      return "MOTOR_3_CURRENT";
+    case MOTOR_4_POWER:
+      return "MOTOR_4_POWER";
+    case MOTOR_4_CURRENT:
+      return "MOTOR_4_CURRENT";
+    case MOTOR_5_POWER:
+      return "MOTOR_5_POWER";
+    case MOTOR_5_CURRENT:
+      return "MOTOR_5_CURRENT";
+    case _TOTAL_SENSOR_COUNT:
+      return "_TOTAL_SENSOR_COUNT";
+    default:
+      return "UNKNOWN_SENSOR_ID";
   }
 }
