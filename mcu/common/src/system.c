@@ -10,7 +10,7 @@ static struct {
   system_state_t last_state;
 } system_state;
 
-void _powerup()
+void _init()
 {
   system_state.state = INIT;
   ON_ERROR_ABORT(storage_init());
@@ -23,7 +23,7 @@ int main(void)
   system_reboot_reason_t reboot_reason = get_reboot_reason();
   switch(reboot_reason) {
     case POWERON:
-      _powerup();
+      _init();
       break;
     case BROWNOUT:
       ABORT(REBOOT_FAIL);

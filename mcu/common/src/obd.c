@@ -63,8 +63,10 @@ int obd_init()
 int obd_clear(obd_code_t code)
 {
   if(code >= _OBD_FAULT_COUNT) return -1;
+
   obd_fault_cfg_t obd_fault = _obd_faults[code];
   if((obd_fault.flags & (OBD_HARDFAULT | OBD_PERSISTENT)) != 0) return -1;
+
   obd_forceclear(code);
   return 0;
 }
@@ -72,8 +74,10 @@ int obd_clear(obd_code_t code)
 int obd_forceclear(obd_code_t code)
 {
   if(code >= _OBD_FAULT_COUNT) return -1;
+
   _obd_faults[code].status &= ~OBD_ACTIVE;
   obd_fault_cfg_t obd_fault = _obd_faults[code];
+
   store_obd_fault(code, obd_fault.status, obd_fault.fault,
                   obd_fault.last_bootcycle_present);
   return 0;

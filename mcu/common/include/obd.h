@@ -9,7 +9,7 @@ typedef enum {
   OBD_FAULT_OR = 16,
 } obd_flags_t;
 typedef enum { OBD_CLEAR = 0, OBD_ACTIVE = 2 } obd_status_t;
-typedef enum { OBD_TEST_SOFT, OBD_TEST_HARD, _OBD_FAULT_COUNT } obd_code_t;
+typedef enum { OBDC_TEST_SOFT, OBDC_TEST_HARD, _OBD_FAULT_COUNT } obd_code_t;
 
 typedef struct _obd_error {
   obd_code_t id;
