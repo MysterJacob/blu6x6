@@ -14,7 +14,7 @@ typedef enum { POWERON, BROWNOUT, EXTERN, CRASH } system_reboot_reason_t;
 
 system_reboot_reason_t get_reboot_reason();
 
-typedef enum { INIT = 0, POST, IDLE, DRIVING, _SYS_STATE_COUNT } system_state_t;
+typedef enum { ANY=-1, INIT = 0, POST, IDLE, DRIVING, _SYS_STATE_COUNT } system_state_t;
 
 typedef struct {
   system_state_t last_state;
@@ -24,3 +24,5 @@ typedef struct {
 typedef system_state_t (*system_state_handler_t)(state_change_params_t params);
 
 extern system_state_handler_t system_state_handlers[_SYS_STATE_COUNT];
+
+system_state_t get_system_state();

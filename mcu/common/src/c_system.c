@@ -1,10 +1,9 @@
-#include "system.h"
-
 #include "fail.h"
 #include "obd.h"
-#include "sensors.h"
 #include "port.h"
+#include "sensors.h"
 #include "storage.h"
+#include "system.h"
 
 static struct {
   system_state_t state;
@@ -44,4 +43,8 @@ int main(void)
     system_state.state =
         handler((state_change_params_t){system_state.last_state, 0});
   };
+}
+system_state_t get_system_state()
+{
+  return system_state.state;
 }
