@@ -1,9 +1,8 @@
-#include "obd.h"
-
 #include <stdio.h>
 #include <string.h>
 
 #include "fail.h"
+#include "obd.h"
 #include "port.h"
 #include "storage.h"
 #include "system.h"
@@ -63,8 +62,8 @@ int obd_init()
 int obd_clear(obd_code_t code)
 {
   if(code >= _OBD_FAULT_COUNT) return -1;
+  const obd_fault_cfg_t obd_fault = _obd_faults[code];
 
-  obd_fault_cfg_t obd_fault = _obd_faults[code];
   if((obd_fault.flags & (OBD_HARDFAULT | OBD_PERSISTENT)) != 0) return -1;
 
   obd_forceclear(code);
@@ -74,33 +73,33 @@ int obd_clear(obd_code_t code)
 int obd_forceclear(obd_code_t code)
 {
   if(code >= _OBD_FAULT_COUNT) return -1;
+  obd_fault_cfg_t *const obd_fault = &_obd_faults[code];
 
-  _obd_faults[code].status &= ~OBD_ACTIVE;
-  obd_fault_cfg_t obd_fault = _obd_faults[code];
+  obd_fault->status &= ~OBD_ACTIVE;
 
-  store_obd_fault(code, obd_fault.status, obd_fault.fault,
-                  obd_fault.last_bootcycle_present);
+  store_obd_fault(code, obd_fault->status, obd_fault->fault,
+                  obd_fault->last_bootcycle_present);
   return 0;
 }
 
 int obd_fault(obd_code_t code, uint8_t fault)
 {
-  if(code >= _OBD_FAULT_COUNT) return -1;
-  _obd_faults[code].status = OBD_ACTIVE;
-  obd_fault_cfg_t obd_fault = _obd_faults[code];
+  obd_fault_cfg_t *const obd_fault = &_obd_faults[code];
 
-  if((obd_fault.flags & OBD_FAULT_OR) != 0) {
+  if(code >= _OBD_FAULT_COUNT) return -1;
+  obd_fault->status = OBD_ACTIVE;
+
+  if((obd_fault->flags & OBD_FAULT_OR) != 0) {
     _obd_faults[code].fault |= fault;
-  } else if((obd_fault.flags & OBD_FAULT_ADD) != 0) {
+  } else if((obd_fault->flags & OBD_FAULT_ADD) != 0) {
     _obd_faults[code].fault += fault;
   }
   _obd_faults[code].last_bootcycle_present = sys.bootcycle;
 
-  obd_fault = _obd_faults[code];
-  store_obd_fault(code, obd_fault.status, obd_fault.fault,
-                  obd_fault.last_bootcycle_present);
+  store_obd_fault(code, obd_fault->status, obd_fault->fault,
+                  obd_fault->last_bootcycle_present);
 
-  if((obd_fault.flags & OBD_HARDFAULT) != 0) {
+  if((obd_fault->flags & OBD_HARDFAULT) != 0) {
     __abort("OBD Hard Fault", code);
   }
   return 0;
