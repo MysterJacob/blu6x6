@@ -109,9 +109,9 @@ void perform_sensors_obd()
   }
 }
 
-int port_print_sensors_handler(int argc, char **argv)
+int port_print_sensors_handler(__attribute__((unused)) int argc, __attribute__((unused)) char **argv)
 {
-  for(int i = 0; i < _sensors.sensor_count; i++) {
+  for(size_t i = 0; i < _sensors.sensor_count; i++) {
     const sensor_t *sensor = _sensors.sensors;
     float out;
     if(get_sensor_reading(sensor->id, &out) == 0) {

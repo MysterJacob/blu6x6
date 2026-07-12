@@ -1,9 +1,8 @@
-#include "port.h"
-
 #include <stdio.h>
 #include <string.h>
 
 #include "fail.h"
+#include "port.h"
 
 #define PORT_MAX_COMMANDS 32
 #define PORT_CMD_BUF_LEN 48
@@ -12,7 +11,8 @@
 static port_command_T port_commands[PORT_MAX_COMMANDS];
 static int port_command_count = 0;
 
-static int help_command_handler(int argc, char **argv)
+static int help_command_handler(__attribute__((unused)) int argc,
+                                __attribute__((unused)) char **argv)
 {
   for(int i = 0; i < port_command_count; i++) {
     printf("%d. %s\n", i, port_commands[i].name);

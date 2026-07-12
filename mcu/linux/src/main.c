@@ -33,7 +33,7 @@ static int obd_test(int argc, char **argv)
   return 0;
 }
 
-system_state_t init_h(state_change_params_t params)
+system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 {
   puts("Init");
   boottime = time(NULL);
@@ -43,13 +43,14 @@ system_state_t init_h(state_change_params_t params)
   return POST;
 }
 
-system_state_t post_h(state_change_params_t params)
+system_state_t post_h(__attribute__((unused)) state_change_params_t params)
+
 {
   puts("Post");
   return IDLE;
 }
 
-system_state_t idle_h(state_change_params_t params)
+system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
 {
   puts("Idle");
   char cmd[48];
@@ -68,7 +69,7 @@ system_state_t idle_h(state_change_params_t params)
   return IDLE;
 }
 
-system_state_t drive_h(state_change_params_t params)
+system_state_t drive_h(__attribute__((unused)) state_change_params_t params)
 {
   puts("Drive");
   return IDLE;
