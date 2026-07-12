@@ -2,6 +2,7 @@
 
 #include "fail.h"
 #include "obd.h"
+#include "sensors.h"
 #include "port.h"
 #include "storage.h"
 
@@ -16,6 +17,7 @@ void _init()
   ON_ERROR_ABORT(storage_init());
   ON_ERROR_ABORT(port_init());
   ON_ERROR_ABORT(obd_init());
+  ON_ERROR_ABORT(sensors_init());
 }
 
 int main(void)
