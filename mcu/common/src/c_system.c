@@ -11,7 +11,7 @@ static struct {
   system_state_t last_state;
 } system_state;
 
-void _init()
+void _mcu_init()
 {
   system_state.state = INIT;
   ON_ERROR_ABORT(storage_init());
@@ -25,7 +25,7 @@ int main(void)
   system_reboot_reason_t reboot_reason = get_reboot_reason();
   switch(reboot_reason) {
     case POWERON:
-      _init();
+      _mcu_init();
       break;
     case BROWNOUT:
       ABORT(REBOOT_FAIL);
