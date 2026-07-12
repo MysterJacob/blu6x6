@@ -26,7 +26,7 @@ system_reboot_reason_t get_reboot_reason()
 static int obd_test(int argc, char **argv)
 {
   if(argc == 1) {
-    obd_fault(OBD_TEST_SOFT, 0);
+    obd_fault(OBDC_TEST_SOFT, 0);
     return 0;
   }
   ON_ERROR_LOG(obd_fault(atoi(argv[1]), 0));
@@ -37,8 +37,8 @@ system_state_t init_h(state_change_params_t params)
 {
   puts("Init");
   boottime = time(NULL);
-  obd_register(OBD_TEST_HARD, OBD_HARDFAULT);
-  obd_register(OBD_TEST_SOFT, OBD_SOFTFAULT);
+  obd_register(OBDC_TEST_HARD, OBD_HARDFAULT);
+  obd_register(OBDC_TEST_SOFT, OBD_SOFTFAULT);
   port_register_command("t", obd_test);
   return POST;
 }
