@@ -34,14 +34,15 @@ static int obd_test(int argc, char **argv)
   ON_ERROR_LOG(obd_fault(atoi(argv[1]), 0));
   return 0;
 }
-static int debug_sys_time(int argc, char **argv)
+static int debug_sys_time(__attribute__((unused)) int argc,
+                          __attribute__((unused)) char **argv)
 {
   printf("Time from boot: %lums\n", (uint32_t)get_ms_from_boot());
   fflush(stdout);
   return 0;
 }
 
-system_state_t init_h(state_change_params_t params)
+system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 {
   port_setup_serial();
 
@@ -52,15 +53,16 @@ system_state_t init_h(state_change_params_t params)
   return POST;
 }
 
-system_state_t post_h(state_change_params_t params)
+system_state_t post_h(__attribute__((unused)) state_change_params_t params)
 {
   return IDLE;
   puts("P.O.S.T. done");
+  set_signalization(GREEN, SIG_ON);
   printf("\n>>>");
   fflush(stdout);
 }
 
-system_state_t idle_h(state_change_params_t params)
+system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
 {
   static char cmd[48];
   static int code;

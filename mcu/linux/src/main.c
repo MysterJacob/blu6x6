@@ -103,3 +103,8 @@ uint64_t get_ms_from_boot()
 {
   return time(NULL) - boottime;
 }
+
+int init_signalization()
+{
+  return 0;
+}

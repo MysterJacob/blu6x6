@@ -24,3 +24,4 @@ int obd_clear(obd_code_t code);
 int obd_forceclear(obd_code_t code);
 int obd_fault(obd_code_t code, uint8_t fault);
 int obd_register(const obd_code_t code, const obd_flags_t flags);
+int obd_active_fault_count();
