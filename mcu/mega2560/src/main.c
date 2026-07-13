@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "fail.h"
 #include "obd.h"
 #include "port.h"
+#include "port_io.h"
 #include "storage.h"
 #include "system.h"
 
@@ -33,43 +35,44 @@ static int obd_test(int argc, char **argv)
   return 0;
 }
 
-system_state_t init_h(__attribute__((unused)) state_change_params_t params)
+system_state_t init_h(state_change_params_t params)
 {
   puts("Init");
-  boottime = time(NULL);
+  port_setup_serial();
   obd_register(OBDC_TEST_HARD, OBD_HARDFAULT);
   obd_register(OBDC_TEST_SOFT, OBD_SOFTFAULT);
   port_register_command("t", obd_test);
   return POST;
 }
 
-system_state_t post_h(__attribute__((unused)) state_change_params_t params)
-
+system_state_t post_h(state_change_params_t params)
 {
   puts("Post");
   return IDLE;
 }
 
-system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
+system_state_t idle_h(state_change_params_t params)
 {
   puts("Idle");
   char cmd[48];
+
   int code;
-  int conv;
   while(1) {
-    printf(">>>");
+    puts(">>>");
     fflush(stdout);
-    while((conv = scanf("%47[^\n]", cmd)) == 0)
-      ;
-    getchar();
-    if(conv < 0) return -1;
+
+    if(fgets(cmd, sizeof(cmd), stdin) == NULL) continue;
+
+    cmd[strcspn(cmd, "\r\n")] = '\0';
+
+    if(cmd[0] == '\0') continue;
+
     code = port_process_command(cmd);
     printf("command exited with code: %d\n", code);
   }
-  return IDLE;
 }
 
-system_state_t drive_h(__attribute__((unused)) state_change_params_t params)
+system_state_t drive_h(state_change_params_t params)
 {
   puts("Drive");
   return IDLE;
@@ -77,5 +80,5 @@ system_state_t drive_h(__attribute__((unused)) state_change_params_t params)
 
 uint64_t get_ms_from_boot()
 {
-  return time(NULL) - boottime;
+  return 0;
 }

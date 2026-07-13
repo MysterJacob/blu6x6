@@ -7,7 +7,7 @@ TARGET_NAME ?= linux_build
 
 LD_FLAGS :=
 CC_EXTRA_FLAGS ?=
-CC_FLAGS := -Wall -Wextra -Os -pedantic --std=c2x $(CC_EXTRA_FLAGS)
+CC_FLAGS := -Wall -Wextra -g3 -pedantic --std=c2x $(CC_EXTRA_FLAGS)
 
 PLATFORM_DIR := .
 COMMON_DIR := ../common
