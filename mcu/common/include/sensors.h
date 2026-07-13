@@ -27,6 +27,7 @@ typedef struct {
   sensor_id_t id;
   sensor_handler_t handler;
   int div;
+  char unit;
 } sensor_t;
 
 typedef struct {
@@ -41,7 +42,8 @@ typedef struct {
 } sensor_ratings_t;
 
 int sensors_init();
-int register_sensor(sensor_id_t id, sensor_handler_t handler, int div);
+int sensors_setup();
+int register_sensor(sensor_id_t id, sensor_handler_t handler, int div, char unit);
 int register_sensor_ratings(sensor_id_t id, system_state_t state, float rating,
                             obd_code_t obd_code, uint8_t obd_fault, uint8_t is_minimum,
                             uint8_t required_samples, int pool_ms);

@@ -26,16 +26,16 @@ int sensors_init()
   memset(_sensors_obd, 0, sizeof(_sensors_obd));
   ON_ERROR_ABORT(port_register_command("sensors", port_print_sensors_handler));
   return 0;
-
 }
 
-int register_sensor(sensor_id_t id, sensor_handler_t handler, int div)
+int register_sensor(sensor_id_t id, sensor_handler_t handler, int div,
+                    char unit)
 {
   if(_sensors.sensor_count >= _TOTAL_SENSOR_COUNT) return 1;
   if(_sensors.sensors_lookup[id] != 0) return 2;
   if(div == 0) return 3;
 
-  _sensors.sensors[_sensors.sensor_count] = (sensor_t){id, handler, div};
+  _sensors.sensors[_sensors.sensor_count] = (sensor_t){id, handler, div, unit};
   _sensors.sensors_lookup[id] = &_sensors.sensors[_sensors.sensor_count++];
   return 0;
 }
@@ -102,13 +102,14 @@ void perform_sensors_obd()
   }
 }
 
-int port_print_sensors_handler(__attribute__((unused)) int argc, __attribute__((unused)) char **argv)
+int port_print_sensors_handler(__attribute__((unused)) int argc,
+                               __attribute__((unused)) char **argv)
 {
   for(size_t i = 0; i < _sensors.sensor_count; i++) {
     const sensor_t *sensor = _sensors.sensors;
     float out;
     if(get_sensor_reading(sensor->id, &out) == 0) {
-      printf("%s \t%-10f\n", sensor_id_to_string(sensor->id), out);
+      printf("%s \t%-10f%c\n", sensor_id_to_string(sensor->id), out, sensor->unit);
     } else {
       printf("%-16d READ FAULT\n", sensor->id);
     }

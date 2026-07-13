@@ -50,7 +50,7 @@ CC_EXTRA_FLAGS ?=
 CFLAGS := $(COMMON_WARN) $(CSTD) $(MCU_FLAGS) $(SECTION_FLAGS) $(DEP_FLAGS) $(CC_EXTRA_FLAGS)
 
 LD_EXTRA_FLAGS ?=
-LDFLAGS := -mmcu=$(MCU) -Wl,--gc-sections -Wl,-Map=$(PROJECT_MAP) $(LD_EXTRA_FLAGS)
+LDFLAGS := -mmcu=$(MCU) -Wl,--gc-sections -Wl,-Map=$(PROJECT_MAP) $(LD_EXTRA_FLAGS) -Wl,-u,vfprintf -lprintf_flt -lm
 
 AVRDUDE_FLAGS := -p $(MCU) -c $(PROGRAMMER) -P $(PORT) -b $(BAUD)
 

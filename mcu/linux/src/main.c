@@ -61,7 +61,7 @@ system_state_t init_h(__attribute__((unused)) state_change_params_t params)
   obd_register(OBDC_TEST_HARD, OBD_HARDFAULT);
   obd_register(OBDC_TEST_SOFT, OBD_SOFTFAULT);
   port_register_command("t", obd_test);
-  register_sensor(MOTOR_1_CURRENT, mock_sensor, 1000);
+  register_sensor(MOTOR_1_CURRENT, mock_sensor, 1000, 'u');
   register_sensor_ratings(MOTOR_1_CURRENT, ANY, 0.3, OBDC_TEST_HARD, 1, 1, 2,
                           1);
   return POST;

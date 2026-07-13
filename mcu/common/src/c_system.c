@@ -22,6 +22,7 @@ void _mcu_init()
   ON_ERROR_ABORT(obd_init());
   ON_ERROR_ABORT(sensors_init());
   ON_ERROR_ABORT(init_signalization());
+  ON_ERROR_ABORT(sensors_setup());
 }
 
 int main(void)

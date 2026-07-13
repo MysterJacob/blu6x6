@@ -17,6 +17,8 @@ system_state_t drive_h(state_change_params_t params);
 
 system_state_handler_t system_state_handlers[] = {init_h, post_h, idle_h,
                                                   drive_h};
+
+// FIXME UPGRADE TO OPTIBOOT
 system_reboot_reason_t get_reboot_reason()
 {
   return POWERON;
@@ -39,6 +41,11 @@ static int debug_sys_time(__attribute__((unused)) int argc,
 {
   printf("Time from boot: %lums\n", (uint32_t)get_ms_from_boot());
   fflush(stdout);
+  return 0;
+}
+
+int test_sensor()
+{
   return 0;
 }
 
