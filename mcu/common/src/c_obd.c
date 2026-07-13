@@ -19,7 +19,7 @@ static int _list_faults_handler(int argc, char **argv)
   if(strcmp(argv[1], "list") == 0) {
     for(int i = 0; i < _OBD_FAULT_COUNT; i++) {
       obd_fault_cfg_t obd_fault = _obd_faults[i];
-      printf("%-8d %-8d %-15lu %-10d %-10x\n", obd_fault.id, obd_fault.status,
+      printf("%-8d %-8d %-15llu %-10d %-10x\n", obd_fault.id, obd_fault.status,
              obd_fault.last_bootcycle_present, obd_fault.flags,
              obd_fault.fault);
     }
@@ -33,7 +33,7 @@ static int _list_faults_handler(int argc, char **argv)
     printf("printing %lu faults\n", count);
     for(size_t i = 0; i < count; i++) {
       obd_fault_nv_t fault = faults_b[i];
-      printf("%-8d %-8d %-15lu %-10d\n", fault.id, fault.status,
+      printf("%-8d %-8d %-15llu %-10d\n", fault.id, fault.status,
              fault.last_bootcycle_present, fault.fault);
     }
 

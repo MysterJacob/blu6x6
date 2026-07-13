@@ -20,20 +20,13 @@ static struct {
 } _sensors_obd[MAX_SENSOR_RATINGS];
 
 int port_print_sensors_handler(int argc, char **argv);
-// int mock_read()
-// {
-//   perform_sensors_obd();
-//   return 400 - 15 * get_ms_from_boot();
-// }
 int sensors_init()
 {
   memset(&_sensors, 0, sizeof(_sensors));
   memset(_sensors_obd, 0, sizeof(_sensors_obd));
   ON_ERROR_ABORT(port_register_command("sensors", port_print_sensors_handler));
-//   register_sensor(MOTOR_1_CURRENT, mock_read, 1000);
-//   register_sensor_ratings(MOTOR_1_CURRENT, ANY, 0.3, OBDC_TEST_HARD, 1, 1, 2,
-//                           1);
   return 0;
+
 }
 
 int register_sensor(sensor_id_t id, sensor_handler_t handler, int div)

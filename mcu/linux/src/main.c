@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -5,6 +6,7 @@
 #include "fail.h"
 #include "obd.h"
 #include "port.h"
+#include "sensors.h"
 #include "storage.h"
 #include "system.h"
 
@@ -33,13 +35,32 @@ static int obd_test(int argc, char **argv)
   return 0;
 }
 
+int mock_sensor()
+{
+  perform_sensors_obd();
+  return 400 - 15 * get_ms_from_boot();
+}
+
+void *obd_thread_worker(void *params)
+{
+  while(1) {
+    perform_sensors_obd();
+  }
+}
+
 system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 {
   puts("Init");
   boottime = time(NULL);
+
   obd_register(OBDC_TEST_HARD, OBD_HARDFAULT);
   obd_register(OBDC_TEST_SOFT, OBD_SOFTFAULT);
   port_register_command("t", obd_test);
+  register_sensor(MOTOR_1_CURRENT, mock_sensor, 1000);
+  register_sensor_ratings(MOTOR_1_CURRENT, ANY, 0.3, OBDC_TEST_HARD, 1, 1, 2,
+                          1);
+  pthread_t obd_thread;
+  pthread_create(&obd_thread, NULL, obd_thread_worker, NULL);
   return POST;
 }
 
