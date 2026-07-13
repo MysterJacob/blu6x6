@@ -4,7 +4,7 @@
 
 void __attribute__((noreturn)) __abort(const char *line, int code)
 {
-  puts("!!ERROR ABORT!!");
+  puts("\n!!ERROR ABORT!!");
   printf("%s (ecode: %d)\n", line, code);
   while(1) {
   }

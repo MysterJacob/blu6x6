@@ -1,7 +1,6 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 #include "fail.h"
 #include "obd.h"
@@ -10,14 +9,13 @@
 #include "storage.h"
 #include "system.h"
 
-uint64_t boottime = 0;
-sys_t sys = {0};
-
 system_state_t init_h(state_change_params_t params);
 system_state_t post_h(state_change_params_t params);
 system_state_t idle_h(state_change_params_t params);
 system_state_t drive_h(state_change_params_t params);
 
+sys_t sys = {0};
+uint64_t boottime;
 system_state_handler_t system_state_handlers[] = {init_h, post_h, idle_h,
                                                   drive_h};
 system_reboot_reason_t get_reboot_reason()
@@ -48,6 +46,13 @@ void *obd_thread_worker(void *params)
   }
 }
 
+int system_init()
+{
+  pthread_t obd_thread;
+  pthread_create(&obd_thread, NULL, obd_thread_worker, NULL);
+  return 0;
+}
+
 system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 {
   puts("Init");
@@ -59,8 +64,6 @@ system_state_t init_h(__attribute__((unused)) state_change_params_t params)
   register_sensor(MOTOR_1_CURRENT, mock_sensor, 1000);
   register_sensor_ratings(MOTOR_1_CURRENT, ANY, 0.3, OBDC_TEST_HARD, 1, 1, 2,
                           1);
-  pthread_t obd_thread;
-  pthread_create(&obd_thread, NULL, obd_thread_worker, NULL);
   return POST;
 }
 

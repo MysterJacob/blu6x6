@@ -1,7 +1,10 @@
+#include <stdio.h>
+
 #include "fail.h"
 #include "obd.h"
 #include "port.h"
 #include "sensors.h"
+#include "signalisation.h"
 #include "storage.h"
 #include "system.h"
 
@@ -13,10 +16,12 @@ static struct {
 void _mcu_init()
 {
   system_state.state = INIT;
+  ON_ERROR_ABORT(system_init());
   ON_ERROR_ABORT(storage_init());
   ON_ERROR_ABORT(port_init());
   ON_ERROR_ABORT(obd_init());
   ON_ERROR_ABORT(sensors_init());
+  ON_ERROR_ABORT(init_signalization());
 }
 
 int main(void)
@@ -39,9 +44,14 @@ int main(void)
   while(1) {
     system_state_handler_t handler = system_state_handlers[system_state.state];
     if(handler == 0) ABORT(SATE_SWITCH_FAIL);
-    system_state.last_state = system_state.state;
+    if(system_state.last_state != system_state.state) {
+      system_state.last_state = system_state.state;
+      printf("state: %d\n", system_state.state);
+    }
     system_state.state =
         handler((state_change_params_t){system_state.last_state, 0});
+    perform_sensors_obd();
+    update_signalization();
   };
 }
 system_state_t get_system_state()

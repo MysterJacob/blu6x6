@@ -1,10 +1,13 @@
 #pragma once
 #include <stdint.h>
 
+int system_init();
+
 typedef enum { REBOOT_FAIL = 2001, SATE_SWITCH_FAIL = 2002 } sys_error;
 
 typedef struct _sys {
   uint64_t bootcycle;
+  uint64_t ms_from_boot;
 } sys_t;
 
 extern sys_t sys;
@@ -14,7 +17,14 @@ typedef enum { POWERON, BROWNOUT, EXTERN, CRASH } system_reboot_reason_t;
 
 system_reboot_reason_t get_reboot_reason();
 
-typedef enum { ANY=-1, INIT = 0, POST, IDLE, DRIVING, _SYS_STATE_COUNT } system_state_t;
+typedef enum {
+  ANY = -1,
+  INIT = 0,
+  POST,
+  IDLE,
+  DRIVING,
+  _SYS_STATE_COUNT
+} system_state_t;
 
 typedef struct {
   system_state_t last_state;
