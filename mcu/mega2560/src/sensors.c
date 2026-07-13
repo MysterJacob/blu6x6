@@ -21,5 +21,10 @@ int sensors_setup()
     ;
 
   register_sensor(BATTERY_VOLTAGE, ad0_sensor, 1023, 'V');
+
+  register_sensor_ratings(BATTERY_VOLTAGE, ANY, 0.5, OBDC_TEST_SOFT, 0, 1, 5,
+                          100);
+  register_sensor_ratings(BATTERY_VOLTAGE, ANY, 0.1, OBDC_TEST_HARD, 0, 1, 5,
+                          100);
   return 0;
 }

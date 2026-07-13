@@ -54,7 +54,7 @@ system_state_t init_h(__attribute__((unused)) state_change_params_t params)
   port_setup_serial();
 
   obd_register(OBDC_TEST_HARD, OBD_HARDFAULT);
-  obd_register(OBDC_TEST_SOFT, OBD_SOFTFAULT);
+  obd_register(OBDC_TEST_SOFT, OBD_SOFTFAULT | OBD_AUTOCLEAR);
   port_register_command("t", obd_test);
   port_register_command("time", debug_sys_time);
   return POST;
@@ -62,11 +62,11 @@ system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 
 system_state_t post_h(__attribute__((unused)) state_change_params_t params)
 {
-  return IDLE;
   puts("P.O.S.T. done");
   set_signalization(GREEN, SIG_ON);
   printf("\n>>>");
   fflush(stdout);
+  return IDLE;
 }
 
 system_state_t idle_h(__attribute__((unused)) state_change_params_t params)

@@ -52,6 +52,14 @@ int main(void)
     system_state.state =
         handler((state_change_params_t){system_state.last_state, 0});
     perform_sensors_obd();
+
+    if(obd_active_fault_count() > 5)
+      set_signalization(YELLOW, SIG_BLINK_RAPID);
+    else if(obd_active_fault_count() > 0)
+      set_signalization(YELLOW, SIG_BLINK_NORMAL);
+    else
+      set_signalization(YELLOW, SIG_OFF);
+
     update_signalization();
   };
 }
