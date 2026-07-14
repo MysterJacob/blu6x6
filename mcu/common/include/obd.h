@@ -15,13 +15,14 @@ typedef struct _obd_error {
   obd_code_t id;
   obd_flags_t flags;
   obd_status_t status;
-  uint8_t fault;
-  uint64_t last_bootcycle_present;
+  uint8_t qualifier;
+  uint32_t last_bootcycle_present;
 } obd_fault_cfg_t;
 
 int obd_init();
 int obd_clear(obd_code_t code);
 int obd_forceclear(obd_code_t code);
-int obd_fault(obd_code_t code, uint8_t fault);
+int obd_fault(obd_code_t code, uint8_t qualifier);
 int obd_register(const obd_code_t code, const obd_flags_t flags);
 int obd_active_fault_count();
+int obd_setup();

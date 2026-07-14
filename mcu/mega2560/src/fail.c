@@ -1,11 +1,13 @@
 #include "fail.h"
 
+#include <avr/interrupt.h>
 #include <stdio.h>
 
 #include "signalisation.h"
 
 void __attribute__((noreturn)) __abort(const char *line, int code)
 {
+  cli();
   puts("\n!!ERROR ABORT!!");
   printf("%s (ecode: %d)\n", line, code);
   signal_hardfault();

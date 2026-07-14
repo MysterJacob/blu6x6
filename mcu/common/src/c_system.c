@@ -17,11 +17,11 @@ void _mcu_init()
 {
   system_state.state = INIT;
   ON_ERROR_ABORT(system_init());
-  ON_ERROR_ABORT(storage_init());
+  ON_ERROR_ABORT(signalisation_init());
   ON_ERROR_ABORT(port_init());
+  ON_ERROR_ABORT(storage_init());
   ON_ERROR_ABORT(obd_init());
   ON_ERROR_ABORT(sensors_init());
-  ON_ERROR_ABORT(init_signalization());
   ON_ERROR_ABORT(sensors_setup());
 }
 

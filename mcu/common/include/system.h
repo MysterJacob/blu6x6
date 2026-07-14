@@ -5,9 +5,12 @@ int system_init();
 
 typedef enum { REBOOT_FAIL = 2001, SATE_SWITCH_FAIL = 2002 } sys_error;
 
+typedef enum { RESTART_ODB } bootflags_t;
+
 typedef struct _sys {
-  uint64_t bootcycle;
+  uint32_t bootcycle;
   uint64_t ms_from_boot;
+  uint32_t bootflags;
 } sys_t;
 
 extern sys_t sys;

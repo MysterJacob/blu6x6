@@ -6,6 +6,7 @@
 #include "obd.h"
 #include "port.h"
 #include "sensors.h"
+#include "signalisation.h"
 #include "storage.h"
 #include "system.h"
 
@@ -104,7 +105,20 @@ uint64_t get_ms_from_boot()
   return time(NULL) - boottime;
 }
 
-int init_signalization()
+int signalisation_init()
+{
+  return 0;
+}
+int sensors_setup()
+{
+  return 0;
+}
+int set_signalization(sig_color_t color, sig_t t)
+{
+  printf("set color %d to %d", color, t);
+  return 0;
+}
+int obd_setup()
 {
   return 0;
 }

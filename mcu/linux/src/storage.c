@@ -5,6 +5,22 @@
 #include "obd.h"
 #include "stdint.h"
 
+typedef struct __attribute__((packed)) {
+  uint16_t magic;
+  uint16_t version;
+  uint16_t count;
+  uint16_t crc;
+  obd_fault_nv_t faults[_OBD_FAULT_COUNT];
+} fault_present_store_t;
+
+typedef struct __attribute__((packed)) {
+  uint16_t magic;
+  uint16_t version;
+  uint16_t count;
+  uint16_t crc;
+  obd_fault_nv_t faults[MAX_HISTORY_FAULTS];
+} fault_history_store_t;
+
 static fault_present_store_t storage;
 static fault_history_store_t history;
 
@@ -40,7 +56,7 @@ int read_obd_faults(size_t buffer_size, size_t *active_count,
     const obd_fault_nv_t fault = storage.faults[i];
     if(fault.id != faults[fault.id].id || buffer_size <= fault.id) continue;
     faults[fault.id].last_bootcycle_present = fault.last_bootcycle_present;
-    faults[fault.id].fault = fault.fault;
+    faults[fault.id].qualifier = fault.qualifier;
     faults[fault.id].status = fault.status;
     fault_count++;
   }

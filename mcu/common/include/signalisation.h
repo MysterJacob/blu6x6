@@ -1,4 +1,4 @@
-int init_signalization();
+int signalisation_init();
 typedef enum {
   SIG_OFF,
   SIG_ON,

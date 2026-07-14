@@ -18,12 +18,6 @@ system_state_t drive_h(state_change_params_t params);
 system_state_handler_t system_state_handlers[] = {init_h, post_h, idle_h,
                                                   drive_h};
 
-// FIXME UPGRADE TO OPTIBOOT
-system_reboot_reason_t get_reboot_reason()
-{
-  return POWERON;
-}
-
 static int obd_test(int argc, char **argv)
 {
   if(argc == 1) {
@@ -36,6 +30,7 @@ static int obd_test(int argc, char **argv)
   ON_ERROR_LOG(obd_fault(atoi(argv[1]), 0));
   return 0;
 }
+
 static int debug_sys_time(__attribute__((unused)) int argc,
                           __attribute__((unused)) char **argv)
 {
@@ -44,17 +39,10 @@ static int debug_sys_time(__attribute__((unused)) int argc,
   return 0;
 }
 
-int test_sensor()
-{
-  return 0;
-}
-
 system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 {
   port_setup_serial();
 
-  obd_register(OBDC_TEST_HARD, OBD_HARDFAULT);
-  obd_register(OBDC_TEST_SOFT, OBD_SOFTFAULT | OBD_AUTOCLEAR);
   port_register_command("t", obd_test);
   port_register_command("time", debug_sys_time);
   return POST;
@@ -62,9 +50,9 @@ system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 
 system_state_t post_h(__attribute__((unused)) state_change_params_t params)
 {
+  printf("boot #%lu\n", sys.bootcycle);
   puts("P.O.S.T. done");
   set_signalization(GREEN, SIG_ON);
-  printf("\n>>>");
   fflush(stdout);
   return IDLE;
 }
@@ -91,7 +79,7 @@ system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
   return IDLE;
 }
 
-system_state_t drive_h(state_change_params_t params)
+system_state_t drive_h(__attribute__((unused)) state_change_params_t params)
 {
   return IDLE;
 }
