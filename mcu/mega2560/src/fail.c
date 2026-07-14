@@ -4,15 +4,17 @@
 #include <avr/wdt.h>
 #include <stdio.h>
 
+#include "motors.h"
 #include "signalisation.h"
 
 void __attribute__((noreturn)) __abort(const char *line, int code)
 {
-  cli();
+  //   cli();
 
-//   puts("\n!!ERROR ABORT!!");
-//   printf("%s (ecode: %d)\n", line, code);
+  //   puts("\n!!ERROR ABORT!!");
+  //   printf("%s (ecode: %d)\n", line, code);
   signal_hardfault();
+  motors_estop();
 
   while(1) {
     __asm("nop");

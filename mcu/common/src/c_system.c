@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "fail.h"
+#include "motors.h"
 #include "obd.h"
 #include "port.h"
 #include "sensors.h"
@@ -23,6 +24,7 @@ void _mcu_init()
   ON_ERROR_ABORT(obd_init());
   ON_ERROR_ABORT(sensors_init());
   ON_ERROR_ABORT(sensors_setup());
+  ON_ERROR_ABORT(motors_init());
 }
 
 int main(void)

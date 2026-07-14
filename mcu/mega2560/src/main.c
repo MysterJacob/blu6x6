@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "fail.h"
+#include "motors.h"
 #include "obd.h"
 #include "port.h"
 #include "port_io.h"
@@ -36,12 +37,21 @@ static int debug_sys_time(__attribute__((unused)) int argc,
   return 0;
 }
 
+static int port_motor(__attribute__((unused)) int argc,
+                      __attribute__((unused)) char **argv)
+{
+  if(argc != 3) set_drive(0, 0);
+  set_drive(atoi(argv[1]), atoi(argv[2]));
+  return 0;
+}
+
 system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 {
   port_setup_serial();
 
   port_register_command("t", obd_test);
   port_register_command("time", debug_sys_time);
+  port_register_command("motor", port_motor);
   return POST;
 }
 
@@ -74,10 +84,21 @@ system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
     printf("\n>>>");
     fflush(stdout);
   }
+
+  if(is_driving()) {
+    set_signalization(GREEN, SIG_BLINK_NORMAL);
+    set_signalization(BUZZER, SIG_BLINK_RAPID);
+    return DRIVING;
+  }
   return IDLE;
 }
 
 system_state_t drive_h(__attribute__((unused)) state_change_params_t params)
 {
-  return IDLE;
+  if(!is_driving()) {
+    set_signalization(GREEN, SIG_ON);
+    set_signalization(BUZZER, SIG_OFF);
+    return IDLE;
+  }
+  return DRIVING;
 }
