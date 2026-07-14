@@ -15,7 +15,7 @@ system_state_t post_h(state_change_params_t params);
 system_state_t idle_h(state_change_params_t params);
 system_state_t drive_h(state_change_params_t params);
 
-sys_t sys = {0};
+sys_t sys = {0, 0, 0};
 uint64_t boottime;
 system_state_handler_t system_state_handlers[] = {init_h, post_h, idle_h,
                                                   drive_h};
@@ -109,15 +109,18 @@ int signalisation_init()
 {
   return 0;
 }
+
 int sensors_setup()
 {
   return 0;
 }
+
 int set_signalization(sig_color_t color, sig_t t)
 {
-  printf("set color %d to %d", color, t);
+  printf("set color %d to %d\n", color, t);
   return 0;
 }
+
 int obd_setup()
 {
   return 0;

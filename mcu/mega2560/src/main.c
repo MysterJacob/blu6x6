@@ -24,9 +24,6 @@ static int obd_test(int argc, char **argv)
     obd_fault(OBDC_TEST_SOFT, 0);
     return 0;
   }
-  set_signalization(RED, SIG_ON);
-  set_signalization(GREEN, SIG_BLINK_NORMAL);
-  set_signalization(YELLOW, SIG_BLINK_RAPID);
   ON_ERROR_LOG(obd_fault(atoi(argv[1]), 0));
   return 0;
 }
@@ -51,6 +48,7 @@ system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 system_state_t post_h(__attribute__((unused)) state_change_params_t params)
 {
   printf("boot #%lu\n", sys.bootcycle);
+  printf("boot flags %lu\n", sys.bootflags);
   puts("P.O.S.T. done");
   set_signalization(GREEN, SIG_ON);
   fflush(stdout);

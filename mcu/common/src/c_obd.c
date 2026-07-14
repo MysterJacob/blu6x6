@@ -1,4 +1,3 @@
-#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -79,14 +78,18 @@ void reset_old_faults(void)
   }
 }
 
+inline void _boot_clear_faults();
 void _boot_clear_faults()
 {
-  if((sys.bootflags & RESTART_ODB) == 0) return;
+  if((sys.bootflags & SYS_RESTART_ODB) == 0) return;
+
   for(size_t i = 0; i < _OBD_FAULT_COUNT; i++) {
     obd_fault_cfg_t *fault = &obd_fault_table[i];
     if((fault->status & OBD_ACTIVE) == 0) continue;
     obd_forceclear(fault->id);
   }
+
+  ABORT(5002);
 }
 
 int obd_init(void)
@@ -95,7 +98,7 @@ int obd_init(void)
   ON_ERROR_ABORT(obd_setup());
   ON_ERROR_ABORT(read_obd_faults(_OBD_FAULT_COUNT, NULL, obd_fault_table));
 
-  //   _boot_clear_faults();
+  _boot_clear_faults();
   _recount_active_faults();
   reset_old_faults();
   _recount_active_faults();

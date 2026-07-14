@@ -8,7 +8,7 @@
 static sig_t sig_status[_SIG_COLOR_COUNT];
 #define PORT_MASK (_BV(PA0) | _BV(PA1) | _BV(PA2) | _BV(PA3))
 
-int init_signalization()
+int signalisation_init()
 {
   for(int i = 0; i < _SIG_COLOR_COUNT; i++) {
     sig_status[i] = SIG_OFF;
@@ -51,7 +51,9 @@ void update_signalization()
   if(PORTA != porta) PORTA = porta;
 }
 
-void signal_hardfault(){
+void signal_hardfault()
+{
+  DDRA |= PORT_MASK;
   PORTA |= PORT_MASK;
   PORTA &= ~_BV(PA0);
 }
