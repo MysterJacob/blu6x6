@@ -41,7 +41,7 @@ int motors_init(void)
   TCCR1A = 0;
   TCCR1B = _BV(WGM12) | _BV(CS11);
   TCNT1 = 0;
-  OCR1A = 1999;
+  OCR1A = 9999;
   TIMSK1 = _BV(OCIE1A);
 
   ICR3 = PWM_CELING;

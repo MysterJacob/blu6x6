@@ -4,6 +4,7 @@ typedef enum {
   SIG_ON,
   SIG_BLINK_NORMAL,
   SIG_BLINK_RAPID,
+  SIG_BLINK_DOUBLE,
 } sig_t;
 typedef enum { RED, YELLOW, GREEN, BUZZER, _SIG_COLOR_COUNT } sig_color_t;
 int set_signalization(sig_color_t color, sig_t t);

@@ -87,7 +87,7 @@ system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
 
   if(is_driving()) {
     set_signalization(GREEN, SIG_BLINK_NORMAL);
-    set_signalization(BUZZER, SIG_BLINK_RAPID);
+    set_signalization(BUZZER, SIG_BLINK_DOUBLE);
     return DRIVING;
   }
   return IDLE;
