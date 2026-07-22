@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "avr/interrupt.h"
+#include "fail.h"
 #include "obd.h"
 
 #define ODB_RESET_PIN PL0
@@ -59,8 +60,48 @@ system_reboot_reason_t get_reboot_reason()
 
 int obd_setup()
 {
-  obd_register(OBDC_TEST_HARD, OBD_HARDFAULT);
-  obd_register(OBDC_TEST_SOFT, OBD_SOFTFAULT | OBD_PERSISTENT);
+  ON_ERROR_ABORT(obd_register(OBDC_TEST_HARD, OBD_HARDFAULT));
+  ON_ERROR_ABORT(obd_register(OBDC_TEST_SOFT, OBD_SOFTFAULT | OBD_PERSISTENT));
+
+  ON_ERROR_ABORT(obd_register(BATTERY_LOW, OBD_SOFTFAULT));
+  ON_ERROR_ABORT(obd_register(BATTERY_CRITICAL, OBD_HARDFAULT));
+
+  ON_ERROR_ABORT(obd_register(MOTOR_0_OVERCURRENT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(MOTOR_0_OVERHEAT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(DRIVER_0_OVERHEAT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(MOTOR_0_POWERLOSS, OBD_HARDFAULT));
+  ON_ERROR_ABORT(obd_register(MOTOR_0_FAULT, OBD_HARDFAULT));
+
+  ON_ERROR_ABORT(obd_register(MOTOR_1_OVERCURRENT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(MOTOR_1_OVERHEAT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(DRIVER_1_OVERHEAT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(MOTOR_1_POWERLOSS, OBD_HARDFAULT));
+  ON_ERROR_ABORT(obd_register(MOTOR_1_FAULT, OBD_HARDFAULT));
+
+  ON_ERROR_ABORT(obd_register(MOTOR_2_OVERCURRENT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(MOTOR_2_OVERHEAT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(DRIVER_2_OVERHEAT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(MOTOR_2_POWERLOSS, OBD_HARDFAULT));
+  ON_ERROR_ABORT(obd_register(MOTOR_2_FAULT, OBD_HARDFAULT));
+
+  ON_ERROR_ABORT(obd_register(MOTOR_3_OVERCURRENT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(MOTOR_3_OVERHEAT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(DRIVER_3_OVERHEAT,
+                              OBD_SOFTFAULT | OBD_PERSISTENT | OBD_AUTOCLEAR));
+  ON_ERROR_ABORT(obd_register(MOTOR_3_POWERLOSS, OBD_HARDFAULT));
+  ON_ERROR_ABORT(obd_register(MOTOR_3_FAULT, OBD_HARDFAULT));
+
   return 0;
 }
 
