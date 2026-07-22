@@ -4,7 +4,8 @@
 #include <avr/io.h>
 #include <string.h>
 
-#define PWM_CELING 799
+#define PWM_CEILING 799
+#define PWM_CEILING_T0 255
 
 static struct {
   uint16_t max_acceleration;
@@ -14,7 +15,6 @@ static struct {
   uint16_t rhs_speed;
   int16_t lhs_request;
   int16_t rhs_request;
-
   int8_t lhs_dir;
   int8_t rhs_dir;
 } motor_cfg;
@@ -22,37 +22,30 @@ static struct {
 int motors_init(void)
 {
   memset(&motor_cfg, 0, sizeof(motor_cfg));
-  motor_cfg.speed_cap = PWM_CELING;
+  motor_cfg.speed_cap = PWM_CEILING;
   motor_cfg.max_acceleration = 1;
   motor_cfg.max_deceleration = 1;
 
-  DDRE |= _BV(PE4) | _BV(PE5) | _BV(PE3);
-  DDRH |= _BV(PH3) | _BV(PH4) | _BV(PH5);
-
-  DDRH |= _BV(PH6);
-  DDRB |= _BV(PB4) | _BV(PB5) | _BV(PB6);
+  DDRE |= _BV(PE3) | _BV(PE4) | _BV(PE5);
+  DDRG |= _BV(PG5);
+  DDRH |= _BV(PH3) | _BV(PH4) | _BV(PH5) | _BV(PH6);
 
   TCCR3A = _BV(COM3A1) | _BV(COM3B1) | _BV(COM3C1) | _BV(WGM31);
   TCCR3B = _BV(WGM33) | _BV(WGM32) | _BV(CS30);
+  ICR3 = PWM_CEILING;
+  OCR3A = 0;
+  OCR3B = 0;
+  OCR3C = 0;
 
-  TCCR4A = _BV(COM4A1) | _BV(COM4B1) | _BV(COM4C1) | _BV(WGM41);
-  TCCR4B = _BV(WGM43) | _BV(WGM42) | _BV(CS40);
+  TCCR0A = _BV(COM0B1) | _BV(WGM01) | _BV(WGM00);
+  TCCR0B = _BV(CS00);
+  OCR0B = 0;
 
   TCCR1A = 0;
   TCCR1B = _BV(WGM12) | _BV(CS11);
   TCNT1 = 0;
   OCR1A = 9999;
   TIMSK1 = _BV(OCIE1A);
-
-  ICR3 = PWM_CELING;
-  ICR4 = PWM_CELING;
-
-  OCR3A = 0;
-  OCR3B = 0;
-  OCR3C = 0;
-  OCR4A = 0;
-  OCR4B = 0;
-  OCR4C = 0;
 
   motor_cfg.lhs_request = 0;
   motor_cfg.rhs_request = 0;
@@ -83,22 +76,20 @@ void motors_estop(void)
   motor_cfg.lhs_dir = 0;
   motor_cfg.rhs_dir = 0;
 
+  PORTH &= ~_BV(PH3);
+  PORTH &= ~_BV(PH4);
+  PORTH &= ~_BV(PH5);
   PORTH &= ~_BV(PH6);
-  PORTB &= ~_BV(PB4);
-  PORTB &= ~_BV(PB6);
-  PORTB &= ~_BV(PB5);
 
   OCR3A = 0;
   OCR3B = 0;
   OCR3C = 0;
-  OCR4A = 0;
-  OCR4B = 0;
-  OCR4C = 0;
+  OCR0B = 0;
 }
 
-int is_driving()
+int is_driving(void)
 {
-  return OCR3A | OCR3B | OCR3C | OCR4A | OCR4B | OCR4C;
+  return OCR3A | OCR3B | OCR3C | OCR0B;
 }
 
 ISR(TIMER1_COMPA_vect)
@@ -119,17 +110,18 @@ ISR(TIMER1_COMPA_vect)
       desired = 1;
     else if(motor_cfg.lhs_request < 0)
       desired = -1;
+
     if(desired != motor_cfg.lhs_dir) {
       motor_cfg.lhs_dir = desired;
       if(motor_cfg.lhs_dir > 0) {
-        PORTH |= _BV(PH6);
-        PORTB &= ~_BV(PB4);
+        PORTH |= _BV(PH3);
+        PORTH &= ~_BV(PH4);
       } else if(motor_cfg.lhs_dir < 0) {
-        PORTH &= ~_BV(PH6);
-        PORTB |= _BV(PB4);
+        PORTH &= ~_BV(PH3);
+        PORTH |= _BV(PH4);
       } else {
-        PORTH &= ~_BV(PH6);
-        PORTB &= ~_BV(PB4);
+        PORTH &= ~_BV(PH3);
+        PORTH &= ~_BV(PH4);
       }
     }
   }
@@ -140,17 +132,18 @@ ISR(TIMER1_COMPA_vect)
       desired = 1;
     else if(motor_cfg.rhs_request < 0)
       desired = -1;
+
     if(desired != motor_cfg.rhs_dir) {
       motor_cfg.rhs_dir = desired;
       if(motor_cfg.rhs_dir > 0) {
-        PORTB |= _BV(PB6);
-        PORTB &= ~_BV(PB5);
+        PORTH |= _BV(PH5);
+        PORTH &= ~_BV(PH6);
       } else if(motor_cfg.rhs_dir < 0) {
-        PORTB &= ~_BV(PB6);
-        PORTB |= _BV(PB5);
+        PORTH &= ~_BV(PH5);
+        PORTH |= _BV(PH6);
       } else {
-        PORTB &= ~_BV(PB6);
-        PORTB &= ~_BV(PB5);
+        PORTH &= ~_BV(PH5);
+        PORTH &= ~_BV(PH6);
       }
     }
   }
@@ -176,24 +169,21 @@ ISR(TIMER1_COMPA_vect)
   }
 
   if(motor_cfg.lhs_dir == 0) {
-    OCR3A = 0;
     OCR3B = 0;
     OCR3C = 0;
   } else {
-    if(motor_cfg.lhs_speed > PWM_CELING) motor_cfg.lhs_speed = PWM_CELING;
-    OCR3A = motor_cfg.lhs_speed;
+    if(motor_cfg.lhs_speed > PWM_CEILING) motor_cfg.lhs_speed = PWM_CEILING;
     OCR3B = motor_cfg.lhs_speed;
     OCR3C = motor_cfg.lhs_speed;
   }
 
   if(motor_cfg.rhs_dir == 0) {
-    OCR4A = 0;
-    OCR4B = 0;
-    OCR4C = 0;
+    OCR3A = 0;
+    OCR0B = 0;
   } else {
-    if(motor_cfg.rhs_speed > PWM_CELING) motor_cfg.rhs_speed = PWM_CELING;
-    OCR4A = motor_cfg.rhs_speed;
-    OCR4B = motor_cfg.rhs_speed;
-    OCR4C = motor_cfg.rhs_speed;
+    if(motor_cfg.rhs_speed > PWM_CEILING) motor_cfg.rhs_speed = PWM_CEILING;
+    OCR3A = motor_cfg.rhs_speed;
+    OCR0B = (uint8_t)(((uint32_t)motor_cfg.rhs_speed * PWM_CEILING_T0) /
+                      PWM_CEILING);
   }
 }
