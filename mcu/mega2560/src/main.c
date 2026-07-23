@@ -65,7 +65,7 @@ system_state_t post_h(__attribute__((unused)) state_change_params_t params)
   return IDLE;
 }
 
-system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
+void process_port_comm()
 {
   static char cmd[48];
   static int code;
@@ -84,7 +84,11 @@ system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
     printf("\n>>>");
     fflush(stdout);
   }
+}
 
+system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
+{
+  process_port_comm();
   if(is_driving()) {
     set_signalization(GREEN, SIG_BLINK_NORMAL);
     set_signalization(BUZZER, SIG_BLINK_DOUBLE);
@@ -95,6 +99,7 @@ system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
 
 system_state_t drive_h(__attribute__((unused)) state_change_params_t params)
 {
+  process_port_comm();
   if(!is_driving()) {
     set_signalization(GREEN, SIG_ON);
     set_signalization(BUZZER, SIG_OFF);

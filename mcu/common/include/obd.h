@@ -5,8 +5,8 @@ typedef enum {
   OBD_HARDFAULT = 1,
   OBD_PERSISTENT = 2,
   OBD_AUTOCLEAR = 4,
-  OBD_FAULT_ADD = 8,
-  OBD_FAULT_OR = 16,
+  OBD_QUALIFIER_ADD = 8,
+  OBD_QUALIFIER_OR = 16,
 } obd_flags_t;
 typedef enum { OBD_CLEAR = 0, OBD_ACTIVE = 2 } obd_status_t;
 typedef enum {
@@ -52,3 +52,4 @@ int obd_fault(obd_code_t code, uint8_t qualifier);
 int obd_register(const obd_code_t code, const obd_flags_t flags);
 int obd_active_fault_count();
 int obd_setup();
+const char *obd_code_to_str(obd_code_t code);

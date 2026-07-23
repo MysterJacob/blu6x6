@@ -32,11 +32,11 @@ static int _list_faults_handler(int argc, char **argv)
   }
 
   if(strcmp(argv[1], "list") == 0) {
-    puts("ID       STATUS   LBP             FLAGS      QUALIFIER");
-    puts("-------- -------- --------------- ---------- ----------");
+    puts("ID              STATUS   LBP             FLAGS      QUALIFIER");
+    puts("--------------- -------- --------------- ---------- ----------");
     for(size_t i = 0; i < _OBD_FAULT_COUNT; i++) {
       const obd_fault_cfg_t *obd_fault = &obd_fault_table[i];
-      printf("%-8d %-8d %-15lu %-10d 0x%-8x\n", obd_fault->id,
+      printf("%-15s %-8d %-15lu %-10d 0x%-8x\n", obd_code_to_str(obd_fault->id),
              obd_fault->status, obd_fault->last_bootcycle_present,
              obd_fault->flags, obd_fault->qualifier);
     }
@@ -48,12 +48,12 @@ static int _list_faults_handler(int argc, char **argv)
     read_obd_faults_history(sizeof(faults_b) / sizeof(faults_b[0]), &count,
                             faults_b);
 
-    puts("ID       STATUS   LBP             FLAGS      QUALIFIER");
-    puts("-------- -------- --------------- ---------- ----------");
+    puts("ID              STATUS   LBP             FLAGS      QUALIFIER");
+    puts("--------------- -------- --------------- ---------- ----------");
     for(size_t i = 0; i < count; i++) {
       const obd_fault_nv_t *fault = &faults_b[i];
-      printf("%-8d\t%-8d\t%-15lu\t%-10d :\n", fault->id, fault->status,
-             fault->last_bootcycle_present, fault->qualifier);
+      printf("%-15s\t%-8d\t%-15lu\t%-10d :\n", obd_code_to_str(fault->id),
+             fault->status, fault->last_bootcycle_present, fault->qualifier);
     }
     puts("-------- -------- --------------- ---------- ----------");
 
@@ -145,9 +145,9 @@ int obd_fault(obd_code_t code, uint8_t fault)
 
   obd_fault->status |= OBD_ACTIVE;
 
-  if((obd_fault->flags & OBD_FAULT_OR) != 0) {
+  if((obd_fault->flags & OBD_QUALIFIER_OR) != 0) {
     obd_fault->qualifier |= fault;
-  } else if((obd_fault->flags & OBD_FAULT_ADD) != 0) {
+  } else if((obd_fault->flags & OBD_QUALIFIER_ADD) != 0) {
     obd_fault->qualifier += fault;
   } else {
     obd_fault->qualifier = fault;
@@ -185,4 +185,60 @@ int obd_register(const obd_code_t code, const obd_flags_t flags)
 int obd_active_fault_count(void)
 {
   return (int)fault_count;
+}
+
+const char *obd_code_to_str(obd_code_t code)
+{
+  switch(code) {
+    case OBDC_TEST_SOFT:
+      return "OBDC_TEST_SOFT";
+    case OBDC_TEST_HARD:
+      return "OBDC_TEST_HARD";
+    case BATTERY_LOW:
+      return "BATTERY_LOW";
+    case BATTERY_CRITICAL:
+      return "BATTERY_CRITICAL";
+    case MOTOR_0_OVERCURRENT:
+      return "MOTOR_0_OVERCURRENT";
+    case MOTOR_0_OVERHEAT:
+      return "MOTOR_0_OVERHEAT";
+    case MOTOR_0_POWERLOSS:
+      return "MOTOR_0_POWERLOSS";
+    case DRIVER_0_OVERHEAT:
+      return "DRIVER_0_OVERHEAT";
+    case MOTOR_0_FAULT:
+      return "MOTOR_0_FAULT";
+    case MOTOR_1_OVERCURRENT:
+      return "MOTOR_1_OVERCURRENT";
+    case MOTOR_1_OVERHEAT:
+      return "MOTOR_1_OVERHEAT";
+    case MOTOR_1_POWERLOSS:
+      return "MOTOR_1_POWERLOSS";
+    case DRIVER_1_OVERHEAT:
+      return "DRIVER_1_OVERHEAT";
+    case MOTOR_1_FAULT:
+      return "MOTOR_1_FAULT";
+    case MOTOR_2_OVERCURRENT:
+      return "MOTOR_2_OVERCURRENT";
+    case MOTOR_2_OVERHEAT:
+      return "MOTOR_2_OVERHEAT";
+    case MOTOR_2_POWERLOSS:
+      return "MOTOR_2_POWERLOSS";
+    case DRIVER_2_OVERHEAT:
+      return "DRIVER_2_OVERHEAT";
+    case MOTOR_2_FAULT:
+      return "MOTOR_2_FAULT";
+    case MOTOR_3_OVERCURRENT:
+      return "MOTOR_3_OVERCURRENT";
+    case MOTOR_3_OVERHEAT:
+      return "MOTOR_3_OVERHEAT";
+    case MOTOR_3_POWERLOSS:
+      return "MOTOR_3_POWERLOSS";
+    case DRIVER_3_OVERHEAT:
+      return "DRIVER_3_OVERHEAT";
+    case MOTOR_3_FAULT:
+      return "MOTOR_3_FAULT";
+    default:
+      return "Unknown";
+  }
 }

@@ -26,7 +26,7 @@ typedef enum {
 } sensor_id_t;
 
 const char *sensor_id_to_string(sensor_id_t id);
-typedef int (*sensor_handler_t)(sensor_id_t id);
+typedef int32_t (*sensor_handler_t)(sensor_id_t id);
 
 typedef struct {
   sensor_id_t id;
@@ -54,7 +54,7 @@ int register_sensor_ratings(sensor_id_t id, system_state_t state, float rating,
                             obd_code_t obd_code, uint8_t obd_fault,
                             uint8_t is_minimum, uint8_t required_samples,
                             int pool_ms);
-int get_sensor_reading(sensor_id_t id, float *out);
-int get_sensor_reading_raw(sensor_id_t id, int *out);
+int32_t get_sensor_reading(sensor_id_t id, float *out);
+int32_t get_sensor_reading_raw(sensor_id_t id, int32_t *out);
 
 void perform_sensors_obd();

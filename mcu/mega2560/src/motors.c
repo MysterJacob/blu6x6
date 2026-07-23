@@ -6,40 +6,102 @@
 
 #define PWM_CEILING 799
 #define PWM_CEILING_T0 255
+#define ENABLE_PORT PORTH
+#define ENABLE_DDR DDRH
+#define ENABLE_PIN PH6
+
+struct motor_axis {
+  int16_t target;
+  int16_t speed;
+};
 
 static struct {
-  uint16_t max_acceleration;
-  uint16_t max_deceleration;
+  struct motor_axis lhs;
+  struct motor_axis rhs;
   uint16_t speed_cap;
-  uint16_t lhs_speed;
-  uint16_t rhs_speed;
-  int16_t lhs_request;
-  int16_t rhs_request;
-  int8_t lhs_dir;
-  int8_t rhs_dir;
+  uint16_t accel_step;
+  uint16_t decel_step;
 } motor_cfg;
+
+static int16_t clamp_i16(int32_t v, int16_t lo, int16_t hi)
+{
+  if(v < lo) return lo;
+  if(v > hi) return hi;
+  return (int16_t)v;
+}
+
+static uint16_t abs_i16(int16_t v)
+{
+  return v >= 0 ? (uint16_t)v : (uint16_t)(-v);
+}
+
+static uint8_t pwm0_from_pwm3(uint16_t v)
+{
+  if(v >= PWM_CEILING) return PWM_CEILING_T0;
+  return (uint8_t)(((uint32_t)v * PWM_CEILING_T0) / PWM_CEILING);
+}
+
+static void chase_axis(volatile struct motor_axis *m)
+{
+  int16_t target = m->target;
+  int16_t speed = m->speed;
+  uint16_t step;
+
+  if(speed == target) return;
+
+  if(speed > 0 && target < 0) {
+    step = motor_cfg.decel_step;
+    if((uint16_t)speed <= step)
+      speed = 0;
+    else
+      speed -= (int16_t)step;
+  } else if(speed < 0 && target > 0) {
+    step = motor_cfg.decel_step;
+    if((uint16_t)(-speed) <= step)
+      speed = 0;
+    else
+      speed += (int16_t)step;
+  } else if(target > speed) {
+    step = speed >= 0 ? motor_cfg.accel_step : motor_cfg.decel_step;
+    if((int32_t)target - speed <= step)
+      speed = target;
+    else
+      speed += (int16_t)step;
+  } else {
+    step = speed <= 0 ? motor_cfg.accel_step : motor_cfg.decel_step;
+    if((int32_t)speed - target <= step)
+      speed = target;
+    else
+      speed -= (int16_t)step;
+  }
+
+  m->speed = clamp_i16(speed, -(int16_t)motor_cfg.speed_cap,
+                       (int16_t)motor_cfg.speed_cap);
+}
 
 int motors_init(void)
 {
   memset(&motor_cfg, 0, sizeof(motor_cfg));
+
   motor_cfg.speed_cap = PWM_CEILING;
-  motor_cfg.max_acceleration = 1;
-  motor_cfg.max_deceleration = 1;
+  motor_cfg.accel_step = 2;
+  motor_cfg.decel_step = 4;
 
   DDRE |= _BV(PE3) | _BV(PE4) | _BV(PE5);
   DDRG |= _BV(PG5);
-  DDRH |= _BV(PH3) | _BV(PH4) | _BV(PH5) | _BV(PH6);
+  ENABLE_DDR |= _BV(ENABLE_PIN);
+
+  OCR3A = 0;
+  OCR3B = 0;
+  OCR3C = 0;
+  OCR0B = 0;
 
   TCCR3A = _BV(COM3A1) | _BV(COM3B1) | _BV(COM3C1) | _BV(WGM31);
   TCCR3B = _BV(WGM33) | _BV(WGM32) | _BV(CS30);
   ICR3 = PWM_CEILING;
-  OCR3A = 0;
-  OCR3B = 0;
-  OCR3C = 0;
 
   TCCR0A = _BV(COM0B1) | _BV(WGM01) | _BV(WGM00);
   TCCR0B = _BV(CS00);
-  OCR0B = 0;
 
   TCCR1A = 0;
   TCCR1B = _BV(WGM12) | _BV(CS11);
@@ -47,12 +109,7 @@ int motors_init(void)
   OCR1A = 9999;
   TIMSK1 = _BV(OCIE1A);
 
-  motor_cfg.lhs_request = 0;
-  motor_cfg.rhs_request = 0;
-  motor_cfg.lhs_dir = 0;
-  motor_cfg.rhs_dir = 0;
-  motor_cfg.lhs_speed = 0;
-  motor_cfg.rhs_speed = 0;
+  ENABLE_PORT &= ~_BV(ENABLE_PIN);
 
   sei();
   return 0;
@@ -60,130 +117,71 @@ int motors_init(void)
 
 int set_drive(int16_t lhs, int16_t rhs)
 {
-  motor_cfg.lhs_request = lhs;
-  motor_cfg.rhs_request = rhs;
+  motor_cfg.lhs.target = clamp_i16(lhs, -(int16_t)motor_cfg.speed_cap,
+                                   (int16_t)motor_cfg.speed_cap);
+  motor_cfg.rhs.target = clamp_i16(rhs, -(int16_t)motor_cfg.speed_cap,
+                                   (int16_t)motor_cfg.speed_cap);
   return 0;
 }
 
 void motors_estop(void)
 {
-  motor_cfg.lhs_request = 0;
-  motor_cfg.rhs_request = 0;
-
-  motor_cfg.lhs_speed = 0;
-  motor_cfg.rhs_speed = 0;
-
-  motor_cfg.lhs_dir = 0;
-  motor_cfg.rhs_dir = 0;
-
-  PORTH &= ~_BV(PH3);
-  PORTH &= ~_BV(PH4);
-  PORTH &= ~_BV(PH5);
-  PORTH &= ~_BV(PH6);
+  motor_cfg.lhs.target = 0;
+  motor_cfg.rhs.target = 0;
+  motor_cfg.lhs.speed = 0;
+  motor_cfg.rhs.speed = 0;
 
   OCR3A = 0;
   OCR3B = 0;
   OCR3C = 0;
   OCR0B = 0;
+
+  ENABLE_PORT &= ~_BV(ENABLE_PIN);
 }
 
 int is_driving(void)
 {
-  return OCR3A | OCR3B | OCR3C | OCR0B;
+  return motor_cfg.lhs.speed || motor_cfg.rhs.speed || motor_cfg.lhs.target ||
+         motor_cfg.rhs.target;
 }
 
 ISR(TIMER1_COMPA_vect)
 {
-  uint16_t lhs_target = motor_cfg.lhs_request >= 0
-                          ? (uint16_t)motor_cfg.lhs_request
-                          : (uint16_t)(-motor_cfg.lhs_request);
-  uint16_t rhs_target = motor_cfg.rhs_request >= 0
-                          ? (uint16_t)motor_cfg.rhs_request
-                          : (uint16_t)(-motor_cfg.rhs_request);
+  uint16_t lhs_pwm;
+  uint16_t rhs_pwm;
 
-  if(lhs_target > motor_cfg.speed_cap) lhs_target = motor_cfg.speed_cap;
-  if(rhs_target > motor_cfg.speed_cap) rhs_target = motor_cfg.speed_cap;
+  chase_axis(&motor_cfg.lhs);
+  chase_axis(&motor_cfg.rhs);
 
-  if(motor_cfg.lhs_speed == 0) {
-    int8_t desired = 0;
-    if(motor_cfg.lhs_request > 0)
-      desired = 1;
-    else if(motor_cfg.lhs_request < 0)
-      desired = -1;
+  lhs_pwm = abs_i16(motor_cfg.lhs.speed);
+  rhs_pwm = abs_i16(motor_cfg.rhs.speed);
 
-    if(desired != motor_cfg.lhs_dir) {
-      motor_cfg.lhs_dir = desired;
-      if(motor_cfg.lhs_dir > 0) {
-        PORTH |= _BV(PH3);
-        PORTH &= ~_BV(PH4);
-      } else if(motor_cfg.lhs_dir < 0) {
-        PORTH &= ~_BV(PH3);
-        PORTH |= _BV(PH4);
-      } else {
-        PORTH &= ~_BV(PH3);
-        PORTH &= ~_BV(PH4);
-      }
-    }
-  }
-
-  if(motor_cfg.rhs_speed == 0) {
-    int8_t desired = 0;
-    if(motor_cfg.rhs_request > 0)
-      desired = 1;
-    else if(motor_cfg.rhs_request < 0)
-      desired = -1;
-
-    if(desired != motor_cfg.rhs_dir) {
-      motor_cfg.rhs_dir = desired;
-      if(motor_cfg.rhs_dir > 0) {
-        PORTH |= _BV(PH5);
-        PORTH &= ~_BV(PH6);
-      } else if(motor_cfg.rhs_dir < 0) {
-        PORTH &= ~_BV(PH5);
-        PORTH |= _BV(PH6);
-      } else {
-        PORTH &= ~_BV(PH5);
-        PORTH &= ~_BV(PH6);
-      }
-    }
-  }
-
-  if(motor_cfg.lhs_speed < lhs_target) {
-    uint16_t d = lhs_target - motor_cfg.lhs_speed;
-    if(d > motor_cfg.max_acceleration) d = motor_cfg.max_acceleration;
-    motor_cfg.lhs_speed += d;
-  } else if(motor_cfg.lhs_speed > lhs_target) {
-    uint16_t d = motor_cfg.lhs_speed - lhs_target;
-    if(d > motor_cfg.max_deceleration) d = motor_cfg.max_deceleration;
-    motor_cfg.lhs_speed -= d;
-  }
-
-  if(motor_cfg.rhs_speed < rhs_target) {
-    uint16_t d = rhs_target - motor_cfg.rhs_speed;
-    if(d > motor_cfg.max_acceleration) d = motor_cfg.max_acceleration;
-    motor_cfg.rhs_speed += d;
-  } else if(motor_cfg.rhs_speed > rhs_target) {
-    uint16_t d = motor_cfg.rhs_speed - rhs_target;
-    if(d > motor_cfg.max_deceleration) d = motor_cfg.max_deceleration;
-    motor_cfg.rhs_speed -= d;
-  }
-
-  if(motor_cfg.lhs_dir == 0) {
-    OCR3B = 0;
-    OCR3C = 0;
+  if(lhs_pwm == 0 && rhs_pwm == 0 && motor_cfg.lhs.target == 0 &&
+     motor_cfg.rhs.target == 0) {
+    ENABLE_PORT &= ~_BV(ENABLE_PIN);
   } else {
-    if(motor_cfg.lhs_speed > PWM_CEILING) motor_cfg.lhs_speed = PWM_CEILING;
-    OCR3B = motor_cfg.lhs_speed;
-    OCR3C = motor_cfg.lhs_speed;
+    ENABLE_PORT |= _BV(ENABLE_PIN);
   }
 
-  if(motor_cfg.rhs_dir == 0) {
+  if(motor_cfg.lhs.speed > 0) {
+    OCR3C = lhs_pwm;
     OCR3A = 0;
-    OCR0B = 0;
+  } else if(motor_cfg.lhs.speed < 0) {
+    OCR3C = 0;
+    OCR3A = lhs_pwm;
   } else {
-    if(motor_cfg.rhs_speed > PWM_CEILING) motor_cfg.rhs_speed = PWM_CEILING;
-    OCR3A = motor_cfg.rhs_speed;
-    OCR0B = (uint8_t)(((uint32_t)motor_cfg.rhs_speed * PWM_CEILING_T0) /
-                      PWM_CEILING);
+    OCR3C = 0;
+    OCR3A = 0;
+  }
+
+  if(motor_cfg.rhs.speed > 0) {
+    OCR3B = rhs_pwm;
+    OCR0B = 0;
+  } else if(motor_cfg.rhs.speed < 0) {
+    OCR3B = 0;
+    OCR0B = pwm0_from_pwm3(rhs_pwm);
+  } else {
+    OCR3B = 0;
+    OCR0B = 0;
   }
 }

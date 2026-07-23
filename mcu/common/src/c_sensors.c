@@ -53,20 +53,20 @@ int register_sensor_ratings(sensor_id_t id, system_state_t state, float rating,
   return 0;
 }
 
-int get_sensor_reading(sensor_id_t id, float *out)
+int32_t get_sensor_reading(sensor_id_t id, float *out)
 {
   if(_sensors.sensors_lookup[id] == 0) return 1;
-  int raw;
+  int32_t raw;
   int ecode = get_sensor_reading_raw(id, &raw);
   if(ecode != 0) return ecode;
   *out = (float)raw / _sensors.sensors_lookup[id]->div;
   return 0;
 }
 
-int get_sensor_reading_raw(sensor_id_t id, int *out)
+int32_t get_sensor_reading_raw(sensor_id_t id, int32_t *out)
 {
   if(_sensors.sensors_lookup[id] == 0) return 1;
-  *out = _sensors.sensors_lookup[id]->handler();
+  *out = _sensors.sensors_lookup[id]->handler(id);
   return 0;
 }
 
@@ -105,13 +105,17 @@ void perform_sensors_obd()
 int port_print_sensors_handler(__attribute__((unused)) int argc,
                                __attribute__((unused)) char **argv)
 {
+  printf("ID   SENSOR NAME          READING\n");
+  printf("---- -------------------- -----------\n");
   for(size_t i = 0; i < _sensors.sensor_count; i++) {
-    const sensor_t *sensor = _sensors.sensors;
+    const sensor_t *sensor = &_sensors.sensors[i];
     float out;
     if(get_sensor_reading(sensor->id, &out) == 0) {
-      printf("%s \t%-10f%c\n", sensor_id_to_string(sensor->id), out, sensor->unit);
+      printf("%-4d %-20s %10f %c\n", sensor->id,
+             sensor_id_to_string(sensor->id), out, sensor->unit);
     } else {
-      printf("%-16d READ FAULT\n", sensor->id);
+      printf("%-4d %-20s READ FAULT\n", sensor->id,
+             sensor_id_to_string(sensor->id));
     }
   }
   return 0;
@@ -124,26 +128,38 @@ const char *sensor_id_to_string(sensor_id_t id)
       return "BATTERY_VOLTAGE";
     case MCU_VOLTAGE:
       return "MCU_VOLTAGE";
+    case MOTOR_0_POWER:
+      return "MOTOR_0_POWER";
+    case DRIVER_0_TEMPERATURE:
+      return "DRIVER_0_TEMPERATURE";
+    case MOTOR_0_TEMPERATURE:
+      return "MOTOR_0_TEMPERATURE";
+    case MOTOR_0_CURRENT:
+      return "MOTOR_0_CURRENT";
     case MOTOR_1_POWER:
       return "MOTOR_1_POWER";
+    case DRIVER_1_TEMPERATURE:
+      return "DRIVER_1_TEMPERATURE";
+    case MOTOR_1_TEMPERATURE:
+      return "MOTOR_1_TEMPERATURE";
     case MOTOR_1_CURRENT:
       return "MOTOR_1_CURRENT";
     case MOTOR_2_POWER:
       return "MOTOR_2_POWER";
+    case DRIVER_2_TEMPERATURE:
+      return "DRIVER_2_TEMPERATURE";
+    case MOTOR_2_TEMPERATURE:
+      return "MOTOR_2_TEMPERATURE";
     case MOTOR_2_CURRENT:
       return "MOTOR_2_CURRENT";
     case MOTOR_3_POWER:
       return "MOTOR_3_POWER";
+    case DRIVER_3_TEMPERATURE:
+      return "DRIVER_3_TEMPERATURE";
+    case MOTOR_3_TEMPERATURE:
+      return "MOTOR_3_TEMPERATURE";
     case MOTOR_3_CURRENT:
       return "MOTOR_3_CURRENT";
-    case MOTOR_4_POWER:
-      return "MOTOR_4_POWER";
-    case MOTOR_4_CURRENT:
-      return "MOTOR_4_CURRENT";
-    case MOTOR_5_POWER:
-      return "MOTOR_5_POWER";
-    case MOTOR_5_CURRENT:
-      return "MOTOR_5_CURRENT";
     case _TOTAL_SENSOR_COUNT:
       return "_TOTAL_SENSOR_COUNT";
     default:
