@@ -32,8 +32,12 @@ static int _list_faults_handler(int argc, char **argv)
   }
 
   if(strcmp(argv[1], "list") == 0) {
-    puts("ID                        STATUS   LBP             FLAGS      QUALIFIER");
-    puts("------------------------- -------- --------------- ---------- ----------");
+    puts(
+        "ID                        STATUS   LBP             FLAGS      "
+        "QUALIFIER");
+    puts(
+        "------------------------- -------- --------------- ---------- "
+        "----------");
     for(size_t i = 0; i < _OBD_FAULT_COUNT; i++) {
       const obd_fault_cfg_t *obd_fault = &obd_fault_table[i];
       printf("%-25s %-8d %-15lu %-10d 0x%-8x\n", obd_code_to_str(obd_fault->id),
@@ -48,14 +52,14 @@ static int _list_faults_handler(int argc, char **argv)
     read_obd_faults_history(sizeof(faults_b) / sizeof(faults_b[0]), &count,
                             faults_b);
 
-    puts("ID                        STATUS   LBP             FLAGS      QUALIFIER");
-    puts("------------------------- -------- --------------- ---------- ----------");
+    puts("ID                        STATUS   LBP             QUALIFIER");
+    puts("------------------------- -------- --------------- ----------");
     for(size_t i = 0; i < count; i++) {
       const obd_fault_nv_t *fault = &faults_b[i];
-      printf("%-25s\t%-8d\t%-15lu\t%-10d :\n", obd_code_to_str(fault->id),
+      printf("%-25s\t%-8d\t%-15lu\t%-10d \n", obd_code_to_str(fault->id),
              fault->status, fault->last_bootcycle_present, fault->qualifier);
     }
-    puts("-------- -------- --------------- ---------- ----------");
+    puts("------------------------- -------- --------------- ----------");
 
   } else {
     return -1;
