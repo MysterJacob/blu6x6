@@ -27,6 +27,7 @@ int set_signalization(sig_color_t color, sig_t t)
 static inline int status_helper(sig_t t)
 {
   const uint32_t time = get_ms_from_boot();
+  const uint32_t time_m = (time % 5000);
   switch(t) {
     case SIG_OFF:
       return 0;
@@ -37,7 +38,8 @@ static inline int status_helper(sig_t t)
     case SIG_BLINK_RAPID:
       return (time % 330 < 150);
     case SIG_BLINK_DOUBLE:
-      return (time % 900 < 150) || (time % 900 > 350);
+      return (time_m < 330) || ((time_m - 1000) < 330);
+      break;
     default:
       return 0;
   }
