@@ -57,6 +57,9 @@ AVRDUDE_FLAGS := -p $(MCU) -c $(PROGRAMMER) -P $(PORT) -b $(BAUD)
 default: all
 all: $(PROJECT_HEX)
 
+proto:
+	make -C "../../proto/" CONFIG="../mcu/proto.cfg" PLATFORM=avr CC="avr-gcc" ar="avr-ar" EXTRA_FLAGS="$(CFLAGS)"
+
 $(BIN_DIR):
 	@mkdir -p $(BIN_DIR) $(BUILD_DIR) $(OBJ_DIR)
 
