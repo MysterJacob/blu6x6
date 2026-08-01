@@ -26,6 +26,15 @@ void _mcu_init()
   ON_ERROR_ABORT(motors_init());
 }
 
+void update_sig_loop()
+{
+  if(obd_active_fault_count() > 5)
+    set_signalization(YELLOW, SIG_BLINK_RAPID);
+  else if(obd_active_fault_count() > 0)
+    set_signalization(YELLOW, SIG_BLINK_NORMAL);
+  else
+    set_signalization(YELLOW, SIG_OFF);
+}
 int main(void)
 {
   system_reboot_reason_t reboot_reason = get_reboot_reason();
@@ -46,22 +55,16 @@ int main(void)
   while(1) {
     system_state_handler_t handler = system_state_handlers[system_state.state];
     if(handler == 0) ABORT(SATE_SWITCH_FAIL);
-    if(system_state.last_state != system_state.state) {
-      system_state.last_state = system_state.state;
-      //       printf("state: %d\n", system_state.state);
-    }
+
+    system_state_t previous_state = system_state.state;
     system_state.state =
         handler((state_change_params_t){system_state.last_state, 0});
+    system_state.last_state = previous_state;
+
     perform_sensors_obd();
 
-    if(obd_active_fault_count() > 5)
-      set_signalization(YELLOW, SIG_BLINK_RAPID);
-    else if(obd_active_fault_count() > 0)
-      set_signalization(YELLOW, SIG_BLINK_NORMAL);
-    else
-      set_signalization(YELLOW, SIG_OFF);
-
     rpi_port_update();
+    update_sig_loop();
     update_signalization();
   };
 }

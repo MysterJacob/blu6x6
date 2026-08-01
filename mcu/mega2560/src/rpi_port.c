@@ -2,6 +2,7 @@
 
 #include <avr/interrupt.h>
 #include <avr/io.h>
+#include <stdio.h>
 #include <util/atomic.h>
 
 #include "proto.h"
@@ -104,8 +105,9 @@ int rpi_port_init(int baudrate)
 
 int rpi_port_update()
 {
-  uint8_t out;
-  while(rxRead(&out)) {
-    processByte(out);
-  }
+//   uint8_t out;
+//   while(rxRead(&out)) {
+//     puts("a");
+//     processByte(out);
+//   }
 }

@@ -23,9 +23,9 @@ system_reboot_reason_t get_reboot_reason();
 typedef enum {
   ANY = -1,
   INIT = 0,
-  IDLE,
-  ARMING,
-  ARMED,
+  IDLE = 1,
+  ARMING = 2,
+  ARMED = 3,
   _SYS_STATE_COUNT
 } system_state_t;
 

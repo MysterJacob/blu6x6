@@ -189,13 +189,13 @@ int sensors_setup()
   ON_ERROR_ABORT(register_sensor(MOTOR_2_POWER, motor_power_sensor, 1, '*'));
   ON_ERROR_ABORT(register_sensor(MOTOR_3_POWER, motor_power_sensor, 1, '*'));
 
-  ON_ERROR_ABORT(register_sensor_ratings(MOTOR_0_POWER, DRIVING, 1,
+  ON_ERROR_ABORT(register_sensor_ratings(MOTOR_0_POWER, ARMED, 1,
                                          MOTOR_0_FAULT, 1, 1, 1, 500));
-  ON_ERROR_ABORT(register_sensor_ratings(MOTOR_1_POWER, DRIVING, 1,
+  ON_ERROR_ABORT(register_sensor_ratings(MOTOR_1_POWER, ARMED, 1,
                                          MOTOR_1_FAULT, 2, 1, 1, 500));
-  ON_ERROR_ABORT(register_sensor_ratings(MOTOR_2_POWER, DRIVING, 1,
+  ON_ERROR_ABORT(register_sensor_ratings(MOTOR_2_POWER, ARMED, 1,
                                          MOTOR_2_FAULT, 4, 1, 1, 500));
-  ON_ERROR_ABORT(register_sensor_ratings(MOTOR_3_POWER, DRIVING, 1,
+  ON_ERROR_ABORT(register_sensor_ratings(MOTOR_3_POWER, ARMED, 1,
                                          MOTOR_3_FAULT, 8, 1, 1, 500));
 
   ON_ERROR_ABORT(
@@ -213,7 +213,7 @@ int sensors_setup()
   ON_ERROR_ABORT(register_sensor_ratings(BATTERY_VOLTAGE, ANY, 20.5,
                                          BATTERY_LOW, 1, 1, 5, 10000));
 
-  ON_ERROR_ABORT(register_sensor_ratings(BATTERY_VOLTAGE, DRIVING, 18.5,
+  ON_ERROR_ABORT(register_sensor_ratings(BATTERY_VOLTAGE, ARMED, 18.5,
                                          BATTERY_CRITICAL, 1, 1, 5, 1000));
 
   return 0;

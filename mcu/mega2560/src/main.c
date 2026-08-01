@@ -104,6 +104,8 @@ void process_port_comm()
 system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
 {
   if(params.last_state != IDLE) {
+    set_signalization(GREEN, SIG_ON);
+    set_signalization(BUZZER, SIG_OFF);
     set_drive(0, 0);
   }
   process_port_comm();
@@ -111,12 +113,21 @@ system_state_t idle_h(__attribute__((unused)) state_change_params_t params)
   return IDLE;
 }
 
-int32_t arm_timestamp;
 system_state_t arming_h(__attribute__((unused)) state_change_params_t params)
 {
+  static int32_t arm_timestamp;
   int32_t time = get_ms_from_boot();
-  if(params.last_state != ARMING) arm_timestamp = time;
-  if(time - arm_timestamp) return ARMED;
+  if(io_port.arm == 0 && rpi_port.arm == 0) return IDLE;
+  if(params.last_state != ARMING) {
+    arm_timestamp = time;
+    set_signalization(GREEN, SIG_BLINK_RAPID);
+    set_signalization(BUZZER, SIG_BLINK_RAPID);
+  }
+  if(time - arm_timestamp > 5000) {
+    set_signalization(GREEN, SIG_BLINK_NORMAL);
+    set_signalization(BUZZER, SIG_BLINK_DOUBLE);
+    return ARMED;
+  }
   io_port.rhs = 0;
   io_port.lhs = 0;
   return ARMING;
@@ -124,6 +135,7 @@ system_state_t arming_h(__attribute__((unused)) state_change_params_t params)
 
 system_state_t armed_h(__attribute__((unused)) state_change_params_t params)
 {
+  process_port_comm();
   if(io_port.arm == 0 && rpi_port.arm == 0) return IDLE;
   if(io_port.arm) {
     set_drive(io_port.lhs, io_port.rhs);
