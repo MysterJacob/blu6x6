@@ -1,4 +1,3 @@
-// storage.c
 #include "storage.h"
 
 #include <avr/eeprom.h>

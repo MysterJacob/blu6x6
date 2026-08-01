@@ -9,10 +9,7 @@
 
 void __attribute__((noreturn)) __abort(const char *line, int code)
 {
-  //   cli();
-
-  //   puts("\n!!ERROR ABORT!!");
-  //   printf("%s (ecode: %d)\n", line, code);
+  cli();
   signal_hardfault();
   motors_estop();
 

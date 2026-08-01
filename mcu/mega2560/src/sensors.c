@@ -2,7 +2,6 @@
 
 #include <avr/io.h>
 #include <math.h>
-#include <stdio.h>
 
 #include "fail.h"
 
@@ -118,7 +117,7 @@ int32_t motor_current_sensor(sensor_id_t id)
   return adc * 43.445;
 }
 
-int32_t battery_voltage_sensors(sensor_id_t id)
+int32_t battery_voltage_sensors(__attribute__((unused)) sensor_id_t id)
 {
   set_adc_pin(12);
   ADCSRA |= (1 << ADSC);

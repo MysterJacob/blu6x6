@@ -1,7 +1,6 @@
 #include "signalisation.h"
 
 #include <avr/io.h>
-#include <string.h>
 
 #include "system.h"
 
