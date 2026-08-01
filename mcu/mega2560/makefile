@@ -24,6 +24,7 @@ INC_DIRS := $(PLATFORM_DIR)/include $(COMMON_DIR)/include
 BIN_DIR := $(PLATFORM_DIR)/build
 BUILD_DIR := $(BIN_DIR)/bin
 OBJ_DIR := $(BIN_DIR)/obj
+LIB_DIR := $(PLATFORM_DIR)/lib
 
 PROJECT_ELF := $(BUILD_DIR)/$(TARGET_NAME).elf
 PROJECT_HEX := $(BUILD_DIR)/$(TARGET_NAME).hex
@@ -64,7 +65,7 @@ $(BIN_DIR):
 	@mkdir -p $(BIN_DIR) $(BUILD_DIR) $(OBJ_DIR)
 
 $(PROJECT_ELF): $(BIN_DIR) $(OBJ_FILES)
-	$(CC) $(OBJ_FILES) $(LDFLAGS) -o $@
+	$(CC) $(OBJ_FILES) -L$(LIB_DIR) -lproto $(LDFLAGS) -o $@
 
 $(PROJECT_HEX): $(PROJECT_ELF)
 	$(OBJCOPY) -O ihex -R .eeprom $< $@

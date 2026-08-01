@@ -10,8 +10,7 @@ static uint8_t line_len = 0;
 
 static int serial_putc(char c, FILE *f __attribute__((unused)))
 {
-  while(!(UCSR0A & (1 << UDRE0)))
-    ;
+  while(!(UCSR0A & (1 << UDRE0)));
   UDR0 = c;
   if(c == '\n') return serial_putc('\r', f);
   return 0;
