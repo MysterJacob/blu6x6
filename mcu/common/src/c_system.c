@@ -1,9 +1,8 @@
-#include <stdio.h>
-
 #include "fail.h"
 #include "motors.h"
 #include "obd.h"
 #include "port.h"
+#include "rpi_port.h"
 #include "sensors.h"
 #include "signalisation.h"
 #include "storage.h"
@@ -49,7 +48,7 @@ int main(void)
     if(handler == 0) ABORT(SATE_SWITCH_FAIL);
     if(system_state.last_state != system_state.state) {
       system_state.last_state = system_state.state;
-      printf("state: %d\n", system_state.state);
+      //       printf("state: %d\n", system_state.state);
     }
     system_state.state =
         handler((state_change_params_t){system_state.last_state, 0});
@@ -62,6 +61,7 @@ int main(void)
     else
       set_signalization(YELLOW, SIG_OFF);
 
+    rpi_port_update();
     update_signalization();
   };
 }
