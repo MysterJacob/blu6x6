@@ -5,8 +5,20 @@
 #include <math.h>
 #include <string.h>
 
+// Enable PH6 - D9
+// PWM Forward Right D2 - PE4 OCR3B
+// PWM Forward Left  D3 - PE5 OCR3C
+// PWM Reverse Right D7 - PH4 OCR4B
+// PWM Reverse Left  D8 - PH5 OCR4C
+
+#define PWM_FR OCR3B
+#define PWM_FL OCR3C
+#define PWM_BR OCR4B
+#define PWM_BL OCR4C
+
 #define PWM_CEILING 799
 #define PWM_CEILING_T0 255
+
 #define ENABLE_PORT PORTH
 #define ENABLE_DDR DDRH
 #define ENABLE_PIN PH6
@@ -24,29 +36,11 @@ static struct {
   float decel_step;
 } motor_cfg;
 
-static int16_t clamp_i16(int32_t v, int16_t lo, int16_t hi)
-{
-  if(v < lo) return lo;
-  if(v > hi) return hi;
-  return (int16_t)v;
-}
-
 static float clampf(float v, float lo, float hi)
 {
   if(v < lo) return lo;
   if(v > hi) return hi;
   return (float)v;
-}
-
-static uint16_t abs_i16(int16_t v)
-{
-  return v >= 0 ? (uint16_t)v : (uint16_t)(-v);
-}
-
-static uint8_t pwm0_from_pwm3(uint16_t v)
-{
-  if(v >= PWM_CEILING) return PWM_CEILING_T0;
-  return (uint8_t)(((uint32_t)v * PWM_CEILING_T0) / PWM_CEILING);
 }
 
 static void chase_axis(volatile struct motor_axis *m)
@@ -93,31 +87,32 @@ int motors_init(void)
 
   motor_cfg.speed_cap = 100;
   motor_cfg.accel_step = 0.3;
-  motor_cfg.decel_step = 0.3;
+  motor_cfg.decel_step = 0.1;
 
-  DDRE |= _BV(PE3) | _BV(PE4) | _BV(PE5);
-  DDRG |= _BV(PG5);
+  DDRE |= _BV(PE4) | _BV(PE5);
+  DDRH |= _BV(PH4) | _BV(PH5);
+
   ENABLE_DDR |= _BV(ENABLE_PIN);
-
-  OCR3A = 0;
-  OCR3B = 0;
-  OCR3C = 0;
-  OCR0B = 0;
+  ENABLE_PORT &= ~_BV(ENABLE_PIN);
 
   TCCR3A = _BV(COM3A1) | _BV(COM3B1) | _BV(COM3C1) | _BV(WGM31);
   TCCR3B = _BV(WGM33) | _BV(WGM32) | _BV(CS30);
   ICR3 = PWM_CEILING;
 
-  TCCR0A = _BV(COM0B1) | _BV(WGM01) | _BV(WGM00);
-  TCCR0B = _BV(CS00);
+  TCCR4A = _BV(COM4A1) | _BV(COM4B1) | _BV(COM4C1) | _BV(WGM41);
+  TCCR4B = _BV(WGM43) | _BV(WGM42) | _BV(CS40);
+  ICR4 = PWM_CEILING;
+
+  PWM_FR = 0;
+  PWM_FL = 0;
+  PWM_BR = 0;
+  PWM_BL = 0;
 
   TCCR1A = 0;
   TCCR1B = _BV(WGM12) | _BV(CS11);
   TCNT1 = 0;
   OCR1A = 9999;
   TIMSK1 = _BV(OCIE1A);
-
-  ENABLE_PORT &= ~_BV(ENABLE_PIN);
 
   sei();
   return 0;
@@ -137,10 +132,10 @@ void motors_estop(void)
   motor_cfg.lhs.speed = 0;
   motor_cfg.rhs.speed = 0;
 
-  OCR3A = 0;
-  OCR3B = 0;
-  OCR3C = 0;
-  OCR0B = 0;
+  PWM_FR = 0;
+  PWM_FL = 0;
+  PWM_BR = 0;
+  PWM_BL = 0;
 
   ENABLE_PORT &= ~_BV(ENABLE_PIN);
 }
@@ -175,24 +170,24 @@ ISR(TIMER1_COMPA_vect)
   }
 
   if(motor_cfg.lhs.speed > 0) {
-    OCR3C = lhs_pwm;
-    OCR3A = 0;
+    PWM_FL = lhs_pwm;
+    PWM_BL = 0;
   } else if(motor_cfg.lhs.speed < 0) {
-    OCR3C = 0;
-    OCR3A = lhs_pwm;
+    PWM_FL = 0;
+    PWM_BL = lhs_pwm;
   } else {
-    OCR3C = 0;
-    OCR3A = 0;
+    PWM_FL = 0;
+    PWM_BL = 0;
   }
 
   if(motor_cfg.rhs.speed > 0) {
-    OCR3B = rhs_pwm;
-    OCR0B = 0;
+    PWM_FR = rhs_pwm;
+    PWM_BR = 0;
   } else if(motor_cfg.rhs.speed < 0) {
-    OCR3B = 0;
-    OCR0B = pwm0_from_pwm3(rhs_pwm);
+    PWM_FR = 0;
+    PWM_BR = rhs_pwm;
   } else {
-    OCR3B = 0;
-    OCR0B = 0;
+    PWM_FR = 0;
+    PWM_BR = 0;
   }
 }

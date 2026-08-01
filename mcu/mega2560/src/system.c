@@ -21,17 +21,16 @@ int system_init()
   _delay_ms(1000);
   set_boot_flags();
   sys.bootcycle = boot_cycles_increment();
-  TCCR2A = _BV(WGM21);
-  TCCR2B = _BV(CS22);
-  TCNT2 = 6;
-  OCR2A = 249;
-  TIMSK2 = _BV(OCIE2A);
+  TCCR0A = _BV(WGM01);
+  TCCR0B = _BV(CS00) | _BV(CS01);
+  OCR0A = 249;
+  TIMSK0 = _BV(OCIE0A);
 
   sei();
   return 0;
 }
 
-ISR(TIMER2_COMPA_vect)
+ISR(TIMER0_COMPA_vect)
 {
   sys.ms_from_boot += 1;
 }
