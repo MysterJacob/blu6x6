@@ -1,5 +1,6 @@
 #include "port_io.h"
 
+#include <avr/delay.h>
 #include <avr/io.h>
 #include <stdio.h>
 
@@ -53,4 +54,7 @@ void port_setup_serial(void)
   UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
   stdout = &uart_stream;
   stdin = &uart_stream;
+  _delay_ms(50);
+  fflush(stdout);
+  fflush(stdin);
 }
