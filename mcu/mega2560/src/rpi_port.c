@@ -7,6 +7,7 @@
 #include <util/atomic.h>
 
 #include "fail.h"
+#include "system.h"
 
 rpi_port_t rpi_port;
 
@@ -17,6 +18,7 @@ static volatile uint8_t rxBuf[RXBUF_SIZE];
 static volatile uint8_t rxHead = 0;
 static volatile uint8_t rxTail = 0;
 static volatile uint8_t rxOverflow = 0;
+static uint32_t last_packet_timestamp = 0;
 
 static void uart2_init(uint32_t baud)
 {
@@ -76,8 +78,6 @@ static void uart2_putc(uint8_t c)
   UDR2 = c;
 }
 
-/* ---------------- Packet protocol ---------------- */
-
 #define START_BYTE 0xAA
 
 typedef enum {
@@ -87,8 +87,8 @@ typedef enum {
 } PacketID_t;
 
 typedef struct __attribute__((packed)) {
-  int16_t lhs;  // left wheel speed *10
-  int16_t rhs;  // right wheel speed *10
+  int16_t lhs;
+  int16_t rhs;
 } setDrive_t;
 
 static uint8_t crc8(const uint8_t *data, uint8_t len)
@@ -116,43 +116,15 @@ static uint8_t pktId, pktLen, pktIdx;
 static uint8_t pktPayload[32];
 static uint8_t crcBuf[2 + 32];
 
-/* ---------------- Wheel speed output ---------------- */
-
-static void setWheelSpeed(float lhs, float rhs)
-{
-  if(lhs > 100.0f) lhs = 100.0f;
-  if(lhs < -100.0f) lhs = -100.0f;
-  if(rhs > 100.0f) rhs = 100.0f;
-  if(rhs < -100.0f) rhs = -100.0f;
-
-  // Adjust pins/timers to match your motor driver wiring
-  if(lhs >= 0) {
-    PORTA &= ~(1 << PA0);
-  } else {
-    PORTA |= (1 << PA0);
-    lhs = -lhs;
-  }
-  if(rhs >= 0) {
-    PORTA &= ~(1 << PA1);
-  } else {
-    PORTA |= (1 << PA1);
-    rhs = -rhs;
-  }
-
-  OCR3A = (uint16_t)(lhs / 100.0f * 255.0f);  // left PWM duty
-  OCR3B = (uint16_t)(rhs / 100.0f * 255.0f);  // right PWM duty
-}
-
 static void packetHandler(uint8_t id, const uint8_t *payload, uint8_t len)
 {
-  //   printf("id: %d \n", id);
+  last_packet_timestamp = get_ms_from_boot();
   switch(id) {
     case arm_ID:
       rpi_port.arm = 1;
       break;
     case disarm_ID:
       rpi_port.arm = 0;
-      setWheelSpeed(0, 0);
       break;
     case setDrive_ID: {
       if(len != sizeof(setDrive_t)) return;
@@ -160,9 +132,6 @@ static void packetHandler(uint8_t id, const uint8_t *payload, uint8_t len)
       memcpy(&drive, payload, sizeof(drive));
       rpi_port.lhs = drive.lhs / 10.0f;
       rpi_port.rhs = drive.rhs / 10.0f;
-      if(rpi_port.arm) {
-        setWheelSpeed(rpi_port.lhs, rpi_port.rhs);
-      }
     } break;
   }
 }
@@ -218,13 +187,16 @@ int rpi_port_init(uint32_t baud)
 
 int rpi_port_update(void)
 {
+  if(rpi_port.arm == 1 && get_ms_from_boot() - last_packet_timestamp > 1000)
+    ABORT(7002);
+
   uint8_t out;
   while(rxRead(&out)) {
     parseByte(out);
   }
   if(rxOverflow) {
     ABORT(7001);
-    rxOverflow = 0;  // optionally log/handle overflow
+    rxOverflow = 0;
   }
   return 0;
 }
