@@ -15,7 +15,7 @@
 #define BUF_SIZE 256
 
 #define MEGA_UART_NUM UART_NUM_1
-#define MEGA_TX_PIN 7
+#define MEGA_TX_PIN 5
 #define MEGA_RX_PIN 6
 #define MEGA_BAUDRATE 9600
 

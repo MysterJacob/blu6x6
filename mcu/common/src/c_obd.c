@@ -92,11 +92,13 @@ void _boot_clear_faults()
     if((fault->status & OBD_ACTIVE) == 0) continue;
     obd_forceclear(fault->id);
   }
+
+  // ABORT after clearing to avoid constant clearing in usage
+  ABORT(5002);
 }
 
 int obd_init(void)
 {
-  puts("obd init");
   ON_ERROR_ABORT(obd_setup());
   ON_ERROR_ABORT(read_obd_faults(_OBD_FAULT_COUNT, NULL, obd_fault_table));
 
