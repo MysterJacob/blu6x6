@@ -1,3 +1,7 @@
+// enum {
+// 
+// } error_t;
+
 void __attribute__((noreturn)) __abort(const char *line, int code);
 void __log_error(const char *line, int code);
 

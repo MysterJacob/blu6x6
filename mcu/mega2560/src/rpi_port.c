@@ -11,7 +11,7 @@
 
 rpi_port_t rpi_port;
 
-#define RXBUF_SIZE 32
+#define RXBUF_SIZE 128
 #define RXBUF_MASK (RXBUF_SIZE - 1)
 
 static volatile uint8_t rxBuf[RXBUF_SIZE];

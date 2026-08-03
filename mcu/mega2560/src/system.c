@@ -1,8 +1,8 @@
 #include "system.h"
 
-#include <avr/delay.h>
 #include <avr/eeprom.h>
 #include <stdint.h>
+#include <util/delay.h>
 
 #include "avr/interrupt.h"
 #include "fail.h"

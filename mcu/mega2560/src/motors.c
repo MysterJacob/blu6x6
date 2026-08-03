@@ -87,7 +87,7 @@ int motors_init(void)
 
   motor_cfg.speed_cap = 100;
   motor_cfg.accel_step = 0.3;
-  motor_cfg.decel_step = 0.1;
+  motor_cfg.decel_step = 0.3;
 
   DDRE |= _BV(PE4) | _BV(PE5);
   DDRH |= _BV(PH4) | _BV(PH5);
