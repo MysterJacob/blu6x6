@@ -2,14 +2,14 @@
 
 #include <avr/interrupt.h>
 #include <avr/io.h>
-#include <stdio.h>
+#include <string.h>
 #include <util/atomic.h>
 
-#include "proto.h"
+#include "fail.h"
 
 rpi_port_t rpi_port;
 
-#define RXBUF_SIZE 128
+#define RXBUF_SIZE 32
 #define RXBUF_MASK (RXBUF_SIZE - 1)
 
 static volatile uint8_t rxBuf[RXBUF_SIZE];
@@ -75,39 +75,153 @@ static void uart2_putc(uint8_t c)
   UDR2 = c;
 }
 
-void packetHandler(const PacketHeader header, void *packetData)
+/* ---------------- Packet protocol ---------------- */
+
+#define START_BYTE 0xAA
+
+typedef enum {
+  arm_ID = 0x01,
+  disarm_ID = 0x02,
+  setDrive_ID = 0x03,
+} PacketID_t;
+
+typedef struct __attribute__((packed)) {
+  int16_t lhs;  // left wheel speed *10
+  int16_t rhs;  // right wheel speed *10
+} setDrive_t;
+
+static uint8_t crc8(const uint8_t *data, uint8_t len)
 {
-  switch(header.id) {
+  uint8_t crc = 0x00;
+  for(uint8_t i = 0; i < len; i++) {
+    crc ^= data[i];
+    for(uint8_t b = 0; b < 8; b++) {
+      crc = (crc & 0x80) ? (uint8_t)((crc << 1) ^ 0x07) : (uint8_t)(crc << 1);
+    }
+  }
+  return crc;
+}
+
+typedef enum {
+  WAIT_START,
+  WAIT_ID,
+  WAIT_LEN,
+  WAIT_PAYLOAD,
+  WAIT_CRC
+} ParseState_t;
+
+static ParseState_t parseState = WAIT_START;
+static uint8_t pktId, pktLen, pktIdx;
+static uint8_t pktPayload[32];
+static uint8_t crcBuf[2 + 32];
+
+/* ---------------- Wheel speed output ---------------- */
+
+static void setWheelSpeed(float lhs, float rhs)
+{
+  if(lhs > 100.0f) lhs = 100.0f;
+  if(lhs < -100.0f) lhs = -100.0f;
+  if(rhs > 100.0f) rhs = 100.0f;
+  if(rhs < -100.0f) rhs = -100.0f;
+
+  // Adjust pins/timers to match your motor driver wiring
+  if(lhs >= 0) {
+    PORTA &= ~(1 << PA0);
+  } else {
+    PORTA |= (1 << PA0);
+    lhs = -lhs;
+  }
+  if(rhs >= 0) {
+    PORTA &= ~(1 << PA1);
+  } else {
+    PORTA |= (1 << PA1);
+    rhs = -rhs;
+  }
+
+  OCR3A = (uint16_t)(lhs / 100.0f * 255.0f);  // left PWM duty
+  OCR3B = (uint16_t)(rhs / 100.0f * 255.0f);  // right PWM duty
+}
+
+static void packetHandler(uint8_t id, const uint8_t *payload, uint8_t len)
+{
+  switch(id) {
     case arm_ID:
       rpi_port.arm = 1;
       break;
     case disarm_ID:
       rpi_port.arm = 0;
+      setWheelSpeed(0, 0);
       break;
     case setDrive_ID: {
-      const setDrive *packet = packetData;
-      rpi_port.rhs = packet->rhs / 100.0f;
-      rpi_port.lhs = packet->lhs / 100.0f;
+      if(len != sizeof(setDrive_t)) return;
+      setDrive_t drive;
+      memcpy(&drive, payload, sizeof(drive));
+      rpi_port.lhs = drive.lhs / 10.0f;
+      rpi_port.rhs = drive.rhs / 10.0f;
+      if(rpi_port.arm) {
+        setWheelSpeed(rpi_port.lhs, rpi_port.rhs);
+      }
     } break;
   }
 }
 
-void errorHandler(const protoErrorCode code)
+static void parseByte(uint8_t b)
 {
+  switch(parseState) {
+    case WAIT_START:
+      if(b == START_BYTE) parseState = WAIT_ID;
+      break;
+
+    case WAIT_ID:
+      pktId = b;
+      crcBuf[0] = b;
+      parseState = WAIT_LEN;
+      break;
+
+    case WAIT_LEN:
+      pktLen = b;
+      crcBuf[1] = b;
+      pktIdx = 0;
+      if(pktLen > sizeof(pktPayload)) {
+        parseState = WAIT_START;
+      } else if(pktLen == 0) {
+        parseState = WAIT_CRC;
+      } else {
+        parseState = WAIT_PAYLOAD;
+      }
+      break;
+
+    case WAIT_PAYLOAD:
+      pktPayload[pktIdx] = b;
+      crcBuf[2 + pktIdx] = b;
+      pktIdx++;
+      if(pktIdx >= pktLen) parseState = WAIT_CRC;
+      break;
+
+    case WAIT_CRC: {
+      uint8_t calc = crc8(crcBuf, 2 + pktLen);
+      if(calc == b) {
+        packetHandler(pktId, pktPayload, pktLen);
+      }
+      parseState = WAIT_START;
+    } break;
+  }
 }
 
-int rpi_port_init(int baudrate)
+int rpi_port_init(uint32_t baud)
 {
-  setPacketCallback(packetHandler);
-  setErrorCallback(errorHandler);
-  uart2_init(baudrate);
+//   uart2_init(baud);
+  return 0;
 }
 
-int rpi_port_update()
+int rpi_port_update(void)
 {
 //   uint8_t out;
 //   while(rxRead(&out)) {
-//     puts("a");
-//     processByte(out);
+//     parseByte(out);
 //   }
+//   if(rxOverflow) {
+//     rxOverflow = 0;  // optionally log/handle overflow
+//   }
+//   return 0;
 }

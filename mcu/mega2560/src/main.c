@@ -68,10 +68,11 @@ system_state_t init_h(__attribute__((unused)) state_change_params_t params)
 {
   port_setup_serial();
 
-  port_register_command("t", obd_test);
-  port_register_command("time", debug_sys_time);
-  port_register_command("arm", port_arm);
-  port_register_command("motor", port_motor);
+  ON_ERROR_ABORT(port_register_command("t", obd_test));
+  ON_ERROR_ABORT(port_register_command("time", debug_sys_time));
+  ON_ERROR_ABORT(port_register_command("arm", port_arm));
+  ON_ERROR_ABORT(port_register_command("motor", port_motor));
+  ON_ERROR_ABORT(rpi_port_init(9600));
   printf("boot #%lu\n", sys.bootcycle);
   printf("boot flags %lu\n", sys.bootflags);
   puts("P.O.S.T. done");

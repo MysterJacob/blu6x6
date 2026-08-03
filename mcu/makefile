@@ -2,10 +2,7 @@ MCU_FLAGS := -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 SECTION_FLAGS := -ffunction-sections -fdata-sections
 DEP_FLAGS := -MMD -MP
 
-proto: 
-	make -C "./mega2560/" proto
-
-flash: proto
+flash: 
 	make -C "./mega2560/" flash
 
 run: 

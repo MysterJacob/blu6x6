@@ -10,5 +10,5 @@ typedef struct {
 
 extern rpi_port_t rpi_port;
 
-int rpi_port_init(int baudrate);
+int rpi_port_init(uint32_t baudrate);
 int rpi_port_update();

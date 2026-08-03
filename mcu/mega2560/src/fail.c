@@ -10,6 +10,7 @@
 void __attribute__((noreturn)) __abort(const char *line, int code)
 {
   cli();
+  puts("ABORT");
   signal_hardfault();
   motors_estop();
 
