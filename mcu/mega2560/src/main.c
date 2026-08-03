@@ -59,7 +59,8 @@ static int port_motor(__attribute__((unused)) int argc,
   } else {
     io_port.rhs = 0;
     io_port.lhs = 0;
-    io_port.arm = 0;
+//     io_port.arm = 0;
+    rpi_port.arm = 1;
   }
   return 0;
 }
@@ -131,6 +132,9 @@ system_state_t arming_h(__attribute__((unused)) state_change_params_t params)
   }
   io_port.rhs = 0;
   io_port.lhs = 0;
+  rpi_port.rhs = 0;
+  rpi_port.lhs = 0;
+  set_drive(0, 0);
   return ARMING;
 }
 

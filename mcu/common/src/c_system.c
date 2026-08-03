@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "fail.h"
 #include "motors.h"
 #include "obd.h"
@@ -60,6 +61,10 @@ int main(void)
     system_state.state =
         handler((state_change_params_t){system_state.last_state, 0});
     system_state.last_state = previous_state;
+    if(system_state.state != system_state.last_state) {
+      printf("Switched from %d to %d\n>>>", system_state.last_state,
+             system_state.state);
+    }
 
     perform_sensors_obd();
 

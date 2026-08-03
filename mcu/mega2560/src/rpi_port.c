@@ -2,6 +2,7 @@
 
 #include <avr/interrupt.h>
 #include <avr/io.h>
+#include <stdio.h>
 #include <string.h>
 #include <util/atomic.h>
 
@@ -144,6 +145,7 @@ static void setWheelSpeed(float lhs, float rhs)
 
 static void packetHandler(uint8_t id, const uint8_t *payload, uint8_t len)
 {
+  //   printf("id: %d \n", id);
   switch(id) {
     case arm_ID:
       rpi_port.arm = 1;
@@ -210,18 +212,19 @@ static void parseByte(uint8_t b)
 
 int rpi_port_init(uint32_t baud)
 {
-//   uart2_init(baud);
+  uart2_init(baud);
   return 0;
 }
 
 int rpi_port_update(void)
 {
-//   uint8_t out;
-//   while(rxRead(&out)) {
-//     parseByte(out);
-//   }
-//   if(rxOverflow) {
-//     rxOverflow = 0;  // optionally log/handle overflow
-//   }
-//   return 0;
+  uint8_t out;
+  while(rxRead(&out)) {
+    parseByte(out);
+  }
+  if(rxOverflow) {
+    ABORT(7001);
+    rxOverflow = 0;  // optionally log/handle overflow
+  }
+  return 0;
 }

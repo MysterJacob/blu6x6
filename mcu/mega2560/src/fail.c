@@ -7,10 +7,13 @@
 #include "motors.h"
 #include "signalisation.h"
 
+static uint8_t panic_stack[128];
 void __attribute__((noreturn)) __abort(const char *line, int code)
 {
   cli();
   puts("ABORT");
+  printf("err: %s (ecode: %d)\n", line, code);
+
   signal_hardfault();
   motors_estop();
 

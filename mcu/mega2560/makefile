@@ -47,7 +47,7 @@ CSTD := -std=gnu1x
 MCU_FLAGS := -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 SECTION_FLAGS := -ffunction-sections -fdata-sections
 DEP_FLAGS := -MMD -MP
-CC_EXTRA_FLAGS ?=
+CC_EXTRA_FLAGS ?= -Wl,-u,vfprintf -lprintf_min
 CFLAGS := $(COMMON_WARN) $(CSTD) $(MCU_FLAGS) $(SECTION_FLAGS) $(DEP_FLAGS) $(CC_EXTRA_FLAGS)
 
 LD_EXTRA_FLAGS ?=
